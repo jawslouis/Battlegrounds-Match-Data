@@ -7,12 +7,14 @@ using Hearthstone_Deck_Tracker.Enums;
 using Hearthstone_Deck_Tracker.API;
 using Hearthstone_Deck_Tracker.Hearthstone.Entities;
 using Hearthstone_Deck_Tracker.Utility.Logging;
+using System.Collections.Generic;
 
 namespace BattlegroundsMatchData
 {
     public class BgMatchDataRecord
     {
-        public int[] TavernTierTimings = new int[5];
+        public List<int> TavernTierTimings = new List<int>();
+        public int CurrentTavernTier = 1;
         public string Minions;
         public string Hero;
         public int Rating;
@@ -31,18 +33,36 @@ namespace BattlegroundsMatchData
 
         public override string ToString()
         {
-            string tavern = TavernTierTimings.Select(x => x.ToString()).Aggregate((a, b) => a + "," + b);
+            string tavern;
+            if (TavernTierTimings.Count > 0)
+                tavern = TavernTierTimings.Select(x => x.ToString()).Aggregate((a, b) => a + "," + b);
+            else tavern = "";
+
             return $"{DateTime},{AddQuotes(Hero)},{Position},{Rating},{AddQuotes(Minions)},{tavern}";
+        }
+
+        public List<object> ToList()
+        {
+            List<object> l = new List<object>
+            {
+                DateTime, Hero, Position, Rating, Minions
+            };
+
+            foreach(int turn in TavernTierTimings)
+            {
+                l.Add(turn);
+            }
+
+            return l;
         }
     }
 
     public class BgMatchData
     {
         private static bool _checkRating = false;
-        private static int _rating;
-        private static int _currentTavernTier;
+        private static int _rating;        
         private static BgMatchDataRecord _record;
-        public static string CsvLocation;
+        private static Config _config;
 
         internal static bool InBgMode(string currentMethod)
         {
@@ -61,10 +81,10 @@ namespace BattlegroundsMatchData
             int turn = Core.Game.GetTurnNumber();
             int level = Core.Game.PlayerEntity.GetTag(GameTag.PLAYER_TECH_LEVEL);
 
-            if (_currentTavernTier != level)
+            if (_record.CurrentTavernTier != level)
             {
-                _record.TavernTierTimings[_currentTavernTier - 1] = turn;
-                _currentTavernTier = level;
+                _record.TavernTierTimings.Add(turn);
+                _record.CurrentTavernTier = level;
             }
 
             Log.Info($"{playerString} - turn {turn} - tavern tier {level}");
@@ -94,14 +114,15 @@ namespace BattlegroundsMatchData
         internal static void GameStart()
         {
             if (!InBgMode("Game Start")) return;
-            Log.Info("Starting game");
+            Log.Info("Starting game");            
             _record = new BgMatchDataRecord();
         }
 
-        internal static void OnLoad()
+        internal static void OnLoad(Config config)
         {
-            Log.Info($"Loaded Plugin. CSV Location: {CsvLocation}");
-            _currentTavernTier = 1;
+            _config = config;
+            Log.Info($"Loaded Plugin. CSV Location: {config.CsvLocation}");            
+
         }
 
         internal static void GameEnd()
@@ -142,18 +163,20 @@ namespace BattlegroundsMatchData
                     _record.Rating = _rating;
                     Log.Info($"Rating Updated: {_rating}");
 
-                    if (!File.Exists(CsvLocation))
+                    if (!File.Exists(_config.CsvLocation))
                     {
-                        using (StreamWriter sw = File.CreateText(CsvLocation))
+                        using (StreamWriter sw = File.CreateText(_config.CsvLocation))
                         {
                             sw.WriteLine(_record.Headers());
                         }
                     }
 
-                    using (StreamWriter sw = File.AppendText(CsvLocation))
+                    using (StreamWriter sw = File.AppendText(_config.CsvLocation))
                     {
                         sw.WriteLine(_record.ToString());
                     }
+
+                    if (_config.UploadEnabled)  SpreadsheetConnector.UpdateData(_record.ToList());
                 }
             }
         }

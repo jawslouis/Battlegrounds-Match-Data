@@ -4,19 +4,29 @@ using System.Windows.Controls;
 using Hearthstone_Deck_Tracker.Plugins;
 using Hearthstone_Deck_Tracker.API;
 using Microsoft.Win32;
+using Newtonsoft.Json;
 
 namespace BattlegroundsMatchData
 {
     public class Config
     {
-        public string SaveLocation;
+        public static readonly string _configLocation = Hearthstone_Deck_Tracker.Config.AppDataPath + @"\Plugins\BattlegroundsMatchData\BattlegroundsMatchData.config";
+        public string CsvLocation = Hearthstone_Deck_Tracker.Config.AppDataPath + @"\BattlegroundsMatchData.csv";
+        public bool UploadEnabled = true;
+        public bool TestUpload = false;
+        public string SpreadsheetId;
+        public string CredentialLocation;
+
+        public void save()
+        {
+            File.WriteAllText(_configLocation, JsonConvert.SerializeObject(this, Formatting.Indented));
+        }
+
     }
 
     public class BgMatchDataPlugin : IPlugin
     {
-
-        private string _saveLocation;
-        private readonly string _configLocation = Hearthstone_Deck_Tracker.Config.AppDataPath + @"\BattlegroundsMatchData.config";
+        private Config config;
 
         public void OnLoad()
         {
@@ -26,26 +36,21 @@ namespace BattlegroundsMatchData
             GameEvents.OnGameEnd.Add(BgMatchData.GameEnd);
             GameEvents.OnInMenu.Add(BgMatchData.InMenu);
 
-            if (File.Exists(_configLocation))
-            {
-                _saveLocation = File.ReadAllText(_configLocation);
-                BgMatchData.CsvLocation = _saveLocation;
+            try {
+                // load config from file, if available
+                config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(Config._configLocation));                
+            } catch {
+                // create config file
+                config = new Config();
+                config.save();
             }
-            else
-            {
-                UpdateSaveLocation(Hearthstone_Deck_Tracker.Config.AppDataPath + @"\BattlegroundsMatchData.csv");
-            }
+      
+            BgMatchData.OnLoad(config);
 
-            BgMatchData.OnLoad();
+            // connect to Google            
+            if (config.UploadEnabled) SpreadsheetConnector.ConnectToGoogle(config);            
         }
-
-        private void UpdateSaveLocation(string loc)
-        {
-            _saveLocation = loc;
-            BgMatchData.CsvLocation = _saveLocation;
-            File.WriteAllText(_configLocation, _saveLocation);
-        }
-
+    
         public void OnUnload()
         {
             // Triggered when the user unticks the plugin, however, HDT does not completely unload the plugin.
@@ -72,7 +77,7 @@ namespace BattlegroundsMatchData
 
         public string Author => "JawsLouis";
 
-        public Version Version => new Version(0, 1, 0);
+        public Version Version => new Version(0, 2, 0);
 
         public MenuItem MenuItem => CreateMenu();
 
@@ -81,14 +86,28 @@ namespace BattlegroundsMatchData
             MenuItem m = new MenuItem {Header = "Battlegrounds Match Data"};
 
             MenuItem setDirectory = new MenuItem {Header = "Set CSV Location"};
-
             setDirectory.Click += (sender, args) =>
             {
                 ShowForm();
             };
-
             m.Items.Add(setDirectory);
-            
+
+            MenuItem enableUpload = new MenuItem {
+                Header = "Enable Google Spreadsheet upload",
+                IsChecked = config.UploadEnabled
+            };
+            enableUpload.Click += (sender, args) =>
+            {
+                config.UploadEnabled = !config.UploadEnabled;
+                enableUpload.IsChecked = config.UploadEnabled;
+                
+                if (config.UploadEnabled) SpreadsheetConnector.ConnectToGoogle(config);
+
+                config.save();
+            };
+
+            m.Items.Add(enableUpload);
+
             return m;
         }
 
@@ -96,11 +115,12 @@ namespace BattlegroundsMatchData
         {
             SaveFileDialog dialog = new SaveFileDialog
             {
-                InitialDirectory = Path.GetDirectoryName(_saveLocation),
-                FileName = Path.GetFileName(_saveLocation)
+                InitialDirectory = Path.GetDirectoryName(config.CsvLocation),
+                FileName = Path.GetFileName(config.CsvLocation)
             };
             dialog.ShowDialog();
-            UpdateSaveLocation(dialog.FileName);
+            config.CsvLocation = dialog.FileName;
+            config.save();
         }
 
     }
