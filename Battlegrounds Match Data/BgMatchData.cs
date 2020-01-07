@@ -8,6 +8,7 @@ using Hearthstone_Deck_Tracker.API;
 using Hearthstone_Deck_Tracker.Hearthstone.Entities;
 using Hearthstone_Deck_Tracker.Utility.Logging;
 using System.Collections.Generic;
+using Hearthstone_Deck_Tracker.Utility;
 
 namespace BattlegroundsMatchData
 {
@@ -63,6 +64,16 @@ namespace BattlegroundsMatchData
         private static int _rating;        
         private static BgMatchDataRecord _record;
         private static Config _config;
+        private static Dictionary<GameTag, string> RelevantTags = new Dictionary<GameTag, string>()
+        {
+            [GameTag.TAUNT] = LocUtil.Get("GameTag_Taunt"),
+            [GameTag.DIVINE_SHIELD] = LocUtil.Get("GameTag_DivineShield"),
+            [GameTag.POISONOUS] = LocUtil.Get("GameTag_Poisonous"),
+            [GameTag.WINDFURY] = LocUtil.Get("GameTag_Windfury"),
+            [GameTag.DEATHRATTLE] = LocUtil.Get("GameTag_Deathrattle")
+        };
+
+
 
         internal static bool InBgMode(string currentMethod)
         {
@@ -72,6 +83,25 @@ namespace BattlegroundsMatchData
                 return false;
             }
             return true;
+        }
+
+        internal static string MinionToString(Entity entity)
+        {
+            if (entity == null) return null;
+
+            string attack = entity.GetTag(GameTag.ATK).ToString();
+            string health = entity.GetTag(GameTag.HEALTH).ToString();
+            string info = $"{attack}/{health}";
+
+            var tags = RelevantTags.Keys.Where(x => entity.HasTag(x)).Select(x => RelevantTags[x]);
+            if (tags.Count() > 0)
+            {
+                info += " " + string.Join(", ", tags);
+            }
+
+            string str = $"{entity.LocalizedName} ({info})";
+
+            return str;
         }
 
         internal static void TurnStart(ActivePlayer player)
@@ -89,10 +119,8 @@ namespace BattlegroundsMatchData
 
             Log.Info($"{playerString} - turn {turn} - tavern tier {level}");
 
-            if (player != ActivePlayer.Player)
-            {
-                TakeBoardSnapshot();
-            }
+            TakeBoardSnapshot();
+
         }
 
         internal static void TakeBoardSnapshot()
@@ -102,7 +130,7 @@ namespace BattlegroundsMatchData
 
             var entities = Core.Game.Entities.Values
                     .Where(x => x.IsMinion && x.IsInPlay && x.IsControlledBy(playerId))
-                    .Select(x => x.LocalizedName)
+                    .Select(x => MinionToString(x))
                     .ToArray();
 
             _record.Minions = entities.Aggregate((a, b) => a + ", " + b);
