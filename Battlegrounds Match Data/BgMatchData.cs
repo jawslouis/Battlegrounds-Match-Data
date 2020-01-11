@@ -204,7 +204,7 @@ namespace BattlegroundsMatchData
                         sw.WriteLine(_record.ToString());
                     }
 
-                    if (_config.UploadEnabled)  SpreadsheetConnector.UpdateData(_record.ToList());
+                    if (_config.UploadEnabled)  BgMatchSpreadsheetConnector.UpdateData(_record.ToList());
                 }
             }
         }

@@ -48,7 +48,7 @@ namespace BattlegroundsMatchData
             BgMatchData.OnLoad(config);
 
             // connect to Google            
-            if (config.UploadEnabled) SpreadsheetConnector.ConnectToGoogle(config);            
+            if (config.UploadEnabled) BgMatchSpreadsheetConnector.ConnectToGoogle(config);
         }
     
         public void OnUnload()
@@ -101,7 +101,7 @@ namespace BattlegroundsMatchData
                 config.UploadEnabled = !config.UploadEnabled;
                 enableUpload.IsChecked = config.UploadEnabled;
                 
-                if (config.UploadEnabled) SpreadsheetConnector.ConnectToGoogle(config);
+                if (config.UploadEnabled) BgMatchSpreadsheetConnector.ConnectToGoogle(config);
 
                 config.save();
             };
