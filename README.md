@@ -25,4 +25,9 @@ Sample output of the CSV, when viewed in a spreadsheet (e.g. Excel):
 ## Auto-upload to Google Spreadsheet
 Auto-uploading is an optional feature that is disabled by default. The [set-up instructions](../../wiki/Auto-upload-to-Google-Spreadsheet/) are in the wiki - this will take about 20 mins. 
 
+[See an example](https://docs.google.com/spreadsheets/d/1N8MS8fNeE3JBLAqDyqQOefSLUM0OIyfHSDDwipP5UCU/edit?usp=sharing) of statistics that can be automatically tracked when auto-uploading is enabled.
 
+![statistics](Images/statistics-1.PNG?raw=true)
+![statistics](Images/statistics-2.PNG?raw=true)
+![statistics](Images/statistics-3.PNG?raw=true)
+![spreadsheet](Images/spreadsheet.PNG?raw=true)
