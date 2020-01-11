@@ -61,7 +61,7 @@ namespace BattlegroundsMatchData
                 Values = values
             };
 
-            String range = "Sheet1!A1:Y";
+            String range = _config.SheetName +  "!A1:J";
 
             AppendRequest request = _sheetsService.Spreadsheets.Values.Append(body, _config.SpreadsheetId, range);
             request.ValueInputOption = AppendRequest.ValueInputOptionEnum.RAW;

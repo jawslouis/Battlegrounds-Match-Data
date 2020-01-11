@@ -14,6 +14,7 @@ namespace BattlegroundsMatchData
         public string CsvLocation = Hearthstone_Deck_Tracker.Config.AppDataPath + @"\BattlegroundsMatchData.csv";
         public bool UploadEnabled = true;
         public bool TestUpload = false;
+        public string SheetName = "Sheet1";
         public string SpreadsheetId;
         public string CredentialLocation;
 
@@ -77,7 +78,7 @@ namespace BattlegroundsMatchData
 
         public string Author => "JawsLouis";
 
-        public Version Version => new Version(0, 2, 1);
+        public Version Version => new Version(0, 2, 2);
 
         public MenuItem MenuItem => CreateMenu();
 
