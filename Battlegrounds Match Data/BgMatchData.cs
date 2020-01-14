@@ -72,6 +72,9 @@ namespace BattlegroundsMatchData
         private static int _rating;        
         private static BgMatchDataRecord _record;
         private static Config _config;
+
+        public static BgMatchOverlay Overlay;
+
         private static Dictionary<GameTag, string> RelevantTags = new Dictionary<GameTag, string>()
         {
             [GameTag.TAUNT] = LocUtil.Get("GameTag_Taunt"),
@@ -118,6 +121,8 @@ namespace BattlegroundsMatchData
             string playerString = player == ActivePlayer.Player ? "Player" : "Opponent";
             int turn = Core.Game.GetTurnNumber();
             _record.EndTurn = turn;
+            Overlay.UpdateTurn(turn);
+
             int level = Core.Game.PlayerEntity.GetTag(GameTag.PLAYER_TECH_LEVEL);
 
             if (_record.CurrentTavernTier != level)
@@ -153,6 +158,8 @@ namespace BattlegroundsMatchData
             if (!InBgMode("Game Start")) return;
             Log.Info("Starting game");            
             _record = new BgMatchDataRecord();
+            Overlay.UpdateTurn(1);
+            Overlay.Show();
         }
 
         internal static void OnLoad(Config config)
@@ -174,6 +181,7 @@ namespace BattlegroundsMatchData
             _record.DateTime = DateTime.Now.ToString("yyyy-MM-dd HHmm");
 
             Log.Info($"Game ended - {_record.Hero} - Position: {_record.Position}");
+            Overlay.Hide();
         }
 
         internal static void InMenu()

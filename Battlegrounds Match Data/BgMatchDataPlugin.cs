@@ -28,6 +28,7 @@ namespace BattlegroundsMatchData
     public class BgMatchDataPlugin : IPlugin
     {
         private Config config;
+        private BgMatchOverlay _overlay;
 
         public void OnLoad()
         {
@@ -50,12 +51,19 @@ namespace BattlegroundsMatchData
 
             // connect to Google            
             if (config.UploadEnabled) BgMatchSpreadsheetConnector.ConnectToGoogle(config);
+
+            _overlay = new BgMatchOverlay();
+            Core.OverlayCanvas.Children.Add(_overlay);
+            _overlay.UpdatePosition();
+            BgMatchData.Overlay = _overlay;
         }
     
         public void OnUnload()
         {
             // Triggered when the user unticks the plugin, however, HDT does not completely unload the plugin.
             // see https://git.io/vxEcH
+
+            Core.OverlayCanvas.Children.Remove(_overlay);
         }
 
         public void OnButtonPress()
