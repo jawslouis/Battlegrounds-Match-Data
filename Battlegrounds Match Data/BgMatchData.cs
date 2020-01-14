@@ -20,6 +20,7 @@ namespace BattlegroundsMatchData
         public string Hero;
         public int Rating;
         public int Position;
+        public int EndTurn = 1;
         public string DateTime;
 
         internal string AddQuotes(string str)
@@ -29,7 +30,7 @@ namespace BattlegroundsMatchData
 
         public string Headers()
         {
-            return "Date & Time,Hero,Position,MMR,Ending Minions," + AddQuotes("Turns taken to reach tavern tiers 2,3,4,5,6");
+            return "Date & Time,Hero,Position,MMR,Ending Minions," + AddQuotes("Turns taken to reach tavern tiers 2,3,4,5,6") + ",,,,,Ending Turn";
         }
 
         public override string ToString()
@@ -39,7 +40,7 @@ namespace BattlegroundsMatchData
                 tavern = TavernTierTimings.Select(x => x.ToString()).Aggregate((a, b) => a + "," + b);
             else tavern = "";
 
-            return $"{DateTime},{AddQuotes(Hero)},{Position},{Rating},{AddQuotes(Minions)},{tavern}";
+            return $"{DateTime},{AddQuotes(Hero)},{Position},{Rating},{AddQuotes(Minions)},{tavern},{EndTurn}";
         }
 
         public List<object> ToList()
@@ -53,6 +54,13 @@ namespace BattlegroundsMatchData
             {
                 l.Add(turn);
             }
+
+            for (int i=0;i< 5 - TavernTierTimings.Count;i++)
+            {
+                l.Add("");
+            }
+
+            l.Add(EndTurn);
 
             return l;
         }
@@ -109,6 +117,7 @@ namespace BattlegroundsMatchData
             if (!InBgMode("Turn Start")) return;
             string playerString = player == ActivePlayer.Player ? "Player" : "Opponent";
             int turn = Core.Game.GetTurnNumber();
+            _record.EndTurn = turn;
             int level = Core.Game.PlayerEntity.GetTag(GameTag.PLAYER_TECH_LEVEL);
 
             if (_record.CurrentTavernTier != level)
