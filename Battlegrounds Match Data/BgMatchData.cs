@@ -12,16 +12,28 @@ using Hearthstone_Deck_Tracker.Utility;
 
 namespace BattlegroundsMatchData
 {
+
+    public class BgMatchDataSnapshot
+    {
+        public string Minions;
+        public string Hero;
+        public int Turn;
+        public string dateTime;
+        public int Position;
+        public string isSelf = "Yes";
+    }
+
+
     public class BgMatchDataRecord
     {
         public List<int> TavernTierTimings = new List<int>();
         public int CurrentTavernTier = 1;
-        public string Minions;
-        public string Hero;
+        public BgMatchDataSnapshot Snapshot = new BgMatchDataSnapshot();
+        public List<BgMatchDataSnapshot> Histories = new List<BgMatchDataSnapshot>();
         public int Rating;
-        public int Position;
-        public int EndTurn = 1;
-        public string DateTime;
+
+        public string DateTime { get => Snapshot.dateTime; set => Snapshot.dateTime = value; }
+        public int Position { get => Snapshot.Position; set => Snapshot.Position = value; }
 
         internal string AddQuotes(string str)
         {
@@ -33,6 +45,8 @@ namespace BattlegroundsMatchData
             return "Date & Time,Hero,Position,MMR,Ending Minions," + AddQuotes("Turns taken to reach tavern tiers 2,3,4,5,6") + ",,,,,Ending Turn";
         }
 
+
+
         public override string ToString()
         {
             string tavern;
@@ -40,36 +54,52 @@ namespace BattlegroundsMatchData
                 tavern = TavernTierTimings.Select(x => x.ToString()).Aggregate((a, b) => a + "," + b);
             else tavern = "";
 
-            return $"{DateTime},{AddQuotes(Hero)},{Position},{Rating},{AddQuotes(Minions)},{tavern},{EndTurn}";
+            return $"{DateTime},{AddQuotes(Snapshot.Hero)},{Position},{Rating},{AddQuotes(Snapshot.Minions)},{tavern},{Snapshot.Turn}";
         }
 
         public List<object> ToList()
         {
             List<object> l = new List<object>
             {
-                DateTime, Hero, Position, Rating, Minions
+                DateTime, Snapshot.Hero, Position, Rating, Snapshot.Minions
             };
 
-            foreach(int turn in TavernTierTimings)
+            foreach (int turn in TavernTierTimings)
             {
                 l.Add(turn);
             }
 
-            for (int i=0;i< 5 - TavernTierTimings.Count;i++)
+            for (int i = 0; i < 5 - TavernTierTimings.Count; i++)
             {
                 l.Add("");
             }
 
-            l.Add(EndTurn);
+            l.Add(Snapshot.Turn);
 
             return l;
+        }
+
+        public IList<IList<Object>> HistoryToList()
+        {
+            IList<IList<Object>> values = new List<IList<Object>>();
+
+            foreach (BgMatchDataSnapshot s in Histories)
+            {
+                List<object> l = new List<object>
+                {
+                    s.dateTime, s.Hero, s.Minions, s.Turn, s.isSelf
+                };
+                values.Add(l);
+            }
+
+            return values;
         }
     }
 
     public class BgMatchData
     {
         private static bool _checkRating = false;
-        private static int _rating;        
+        private static int _rating;
         private static BgMatchDataRecord _record;
         private static Config _config;
 
@@ -118,9 +148,9 @@ namespace BattlegroundsMatchData
         internal static void TurnStart(ActivePlayer player)
         {
             if (!InBgMode("Turn Start")) return;
-            string playerString = player == ActivePlayer.Player ? "Player" : "Opponent";
+
             int turn = Core.Game.GetTurnNumber();
-            _record.EndTurn = turn;
+
             Overlay.UpdateTurn(turn);
 
             int level = Core.Game.PlayerEntity.GetTag(GameTag.PLAYER_TECH_LEVEL);
@@ -131,32 +161,62 @@ namespace BattlegroundsMatchData
                 _record.CurrentTavernTier = level;
             }
 
-            Log.Info($"{playerString} - turn {turn} - tavern tier {level}");
+            TakeBoardSnapshot(player, turn);
+        }
 
-            TakeBoardSnapshot();
+        internal static void TakeBoardSnapshot(ActivePlayer player, int turn)
+        // take snapshot of current minions board state
+        {
+
+            int playerId = Core.Game.Player.Id;
+
+            BgMatchDataSnapshot Snapshot = CreatePlayerSnapshot(playerId, turn);
+
+            Log.Info("Current minions in play: " + Snapshot.Minions);
+            _record.Snapshot = Snapshot;
+
+            bool isOpponentTurn = player == ActivePlayer.Opponent;
+
+            if (turn >= 7 && isOpponentTurn)
+            {
+                _record.Histories.Add(Snapshot);
+
+                // record opponent's board too
+                BgMatchDataSnapshot OppSnapshot = CreatePlayerSnapshot(Core.Game.Opponent.Id, turn);
+                OppSnapshot.isSelf = "";
+                Log.Info($"Opponent: ({OppSnapshot.Hero}) - Minions in play: {OppSnapshot.Minions}");
+                _record.Histories.Add(OppSnapshot);
+
+            }
 
         }
 
-        internal static void TakeBoardSnapshot()
-        // take snapshot of current minions board state
+        private static BgMatchDataSnapshot CreatePlayerSnapshot(int playerId, int turn)
         {
-            int playerId = Core.Game.Player.Id;
-
+            BgMatchDataSnapshot Snapshot = new BgMatchDataSnapshot();
             var entities = Core.Game.Entities.Values
                     .Where(x => x.IsMinion && x.IsInPlay && x.IsControlledBy(playerId))
                     .Select(x => MinionToString(x))
                     .ToArray();
 
-            _record.Minions = entities.Aggregate((a, b) => a + ", " + b);
+            Entity hero = Core.Game.Entities.Values
+                .Where(x => x.IsHero && x.IsInPlay && x.IsControlledBy(playerId))
+                .FirstOrDefault();
 
-            Log.Info("Current minions in play: " + _record.Minions);
+            Snapshot.Position = hero.GetTag(GameTag.PLAYER_LEADERBOARD_PLACE);
 
+            Snapshot.Hero = hero.LocalizedName;
+            Snapshot.Minions = entities.Aggregate((a, b) => a + ", " + b);
+            Snapshot.Turn = turn;
+            Snapshot.dateTime = DateTime.Now.ToString("yyyy-MM-dd HHmm");
+
+            return Snapshot;
         }
 
         internal static void GameStart()
         {
             if (!InBgMode("Game Start")) return;
-            Log.Info("Starting game");            
+            Log.Info("Starting game");
             _record = new BgMatchDataRecord();
             Overlay.UpdateTurn(1);
             Overlay.Show();
@@ -165,7 +225,7 @@ namespace BattlegroundsMatchData
         internal static void OnLoad(Config config)
         {
             _config = config;
-            Log.Info($"Loaded Plugin. CSV Location: {config.CsvLocation}");            
+            Log.Info($"Loaded Plugin. CSV Location: {config.CsvLocation}");
 
         }
 
@@ -177,10 +237,8 @@ namespace BattlegroundsMatchData
                 .Where(x => x.IsHero && x.GetTag(GameTag.PLAYER_ID) == playerId)
                 .First();
             _record.Position = hero.GetTag(GameTag.PLAYER_LEADERBOARD_PLACE);
-            _record.Hero = hero.LocalizedName;
-            _record.DateTime = DateTime.Now.ToString("yyyy-MM-dd HHmm");
 
-            Log.Info($"Game ended - {_record.Hero} - Position: {_record.Position}");
+            Log.Info($"Game ended - {_record.Snapshot.Hero} - Position: {_record.Position}");
             Overlay.Hide();
         }
 
@@ -221,7 +279,15 @@ namespace BattlegroundsMatchData
                         sw.WriteLine(_record.ToString());
                     }
 
-                    if (_config.UploadEnabled)  BgMatchSpreadsheetConnector.UpdateData(_record.ToList());
+                    if (_config.UploadEnabled)
+                    {
+
+                        String range = _config.SheetName + "!A1:K";
+                        BgMatchSpreadsheetConnector.UpdateSingleRow(_record.ToList(), range);
+
+                        range = "Boards!A1:E";
+                        BgMatchSpreadsheetConnector.UpdateData(_record.HistoryToList(), range);
+                    }
                 }
             }
         }
