@@ -145,6 +145,17 @@ namespace BattlegroundsMatchData
             return str;
         }
 
+        internal static float MinionToAtk(Entity entity)
+        {
+            return entity.GetTag(GameTag.ATK);
+        }
+
+        internal static float MinionToHealth(Entity entity)
+        {
+            return entity.GetTag(GameTag.HEALTH);
+        }
+
+
         internal static void TurnStart(ActivePlayer player)
         {
             if (!InBgMode("Turn Start")) return;
@@ -161,19 +172,25 @@ namespace BattlegroundsMatchData
                 _record.CurrentTavernTier = level;
             }
 
-            TakeBoardSnapshot(player, turn);
-        }
-
-        internal static void TakeBoardSnapshot(ActivePlayer player, int turn)
-        // take snapshot of current minions board state
-        {
-
+            // take snapshot of current minions board state
             int playerId = Core.Game.Player.Id;
 
             BgMatchDataSnapshot Snapshot = CreatePlayerSnapshot(playerId, turn);
 
             Log.Info("Current minions in play: " + Snapshot.Minions);
             _record.Snapshot = Snapshot;
+
+            float atk = Core.Game.Entities.Values
+                    .Where(x => x.IsMinion && x.IsInPlay && x.IsControlledBy(playerId))
+                    .Select(x => MinionToAtk(x))
+                    .ToArray().Average();
+
+            float health = Core.Game.Entities.Values
+                    .Where(x => x.IsMinion && x.IsInPlay && x.IsControlledBy(playerId))
+                    .Select(x => MinionToHealth(x))
+                    .ToArray().Average();
+
+            Overlay.UpdateStats(atk, health);
 
             bool isOpponentTurn = player == ActivePlayer.Opponent;
 

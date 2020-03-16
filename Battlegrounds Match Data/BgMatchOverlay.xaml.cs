@@ -37,6 +37,10 @@ namespace BattlegroundsMatchData
         {
             TurnLabel.Content = "Turn " + turn;
         }
+        public void UpdateStats(float atk, float health)
+        {
+            StatsLabel.Content = $"Avg Stats: {atk.ToString("0.0")} / {health.ToString("0.0")}";
+        }
 
         public void Hide()
         {
