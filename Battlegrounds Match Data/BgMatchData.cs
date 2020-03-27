@@ -157,6 +157,7 @@ namespace BattlegroundsMatchData
             return entity.GetTag(GameTag.HEALTH);
         }
 
+
         internal static void PlayerPlay(Card card)
         {
             UpdateStats();
@@ -285,7 +286,7 @@ namespace BattlegroundsMatchData
         internal static void Update()
         {
 
-            if (_checkStats >0)
+            if (_checkStats > 0)
             {
                 _checkStats--;
                 UpdateStats();
@@ -293,7 +294,7 @@ namespace BattlegroundsMatchData
 
             // rating is only updated after we have passed the menu
             if (_checkRating)
-            {                
+            {
                 int latestRating = Core.Game.BattlegroundsRatingInfo.Rating;
 
                 Log.Info($"Checking rating. Current time is: {DateTime.Now.ToString()}, {DateTime.Now.Millisecond.ToString()}ms ");
@@ -326,6 +327,7 @@ namespace BattlegroundsMatchData
 
                     range = _config.SheetForAllBoards + "!A1:E";
                     BgMatchSpreadsheetConnector.UpdateData(_record.HistoryToList(), range);
+
                 }
 
             }
