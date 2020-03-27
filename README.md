@@ -7,7 +7,7 @@ The following data will be captured for each match:
 - MMR after match
 - Ending minions
 - Turns taken to reach each tavern tier
-- # of turns taken
+- Number of turns taken
 
 Sample output of the CSV, when viewed in a spreadsheet (e.g. Excel):
 
