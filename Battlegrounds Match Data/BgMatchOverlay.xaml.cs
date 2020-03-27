@@ -14,6 +14,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 using Hearthstone_Deck_Tracker.API;
+using Hearthstone_Deck_Tracker.Utility.Logging;
 
 namespace BattlegroundsMatchData
 {
@@ -29,17 +30,20 @@ namespace BattlegroundsMatchData
         }
         public void UpdatePosition()
         {
-            Canvas.SetBottom(this, Core.OverlayWindow.Height * 10 / 100);
-            Canvas.SetRight(this, Core.OverlayWindow.Width * 10 / 100);
+            double scale = Math.Max(0.8, Math.Min(1.3, Core.OverlayWindow.Height / 1080));
+            Canvas.SetTop(this, 65 * scale);
+            Canvas.SetRight(this, 220 * scale);
+            RenderTransform = new ScaleTransform(scale, scale, Width, Height);
         }
 
-        public void UpdateTurn(int turn)
+        public void UpdateAvgStats(float atk, float health)
         {
-            TurnLabel.Content = "Turn " + turn;
+            AvgStatsLabel.Content = $"Avg Stats: {atk.ToString("0.0")} / {health.ToString("0.0")}";
         }
-        public void UpdateStats(float atk, float health)
+
+        public void UpdateTotalStats(int atk, int health)
         {
-            StatsLabel.Content = $"Avg Stats: {atk.ToString("0.0")} / {health.ToString("0.0")}";
+            TotalStatsLabel.Content = $"Total Stats: {atk} / {health}";
         }
 
         public void Hide()

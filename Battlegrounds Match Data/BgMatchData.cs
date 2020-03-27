@@ -4,6 +4,7 @@ using System.IO;
 
 using HearthDb.Enums;
 using Hearthstone_Deck_Tracker.Enums;
+using Hearthstone_Deck_Tracker.Hearthstone;
 using Hearthstone_Deck_Tracker.API;
 using Hearthstone_Deck_Tracker.Hearthstone.Entities;
 using Hearthstone_Deck_Tracker.Utility.Logging;
@@ -155,14 +156,16 @@ namespace BattlegroundsMatchData
             return entity.GetTag(GameTag.HEALTH);
         }
 
+        internal static void PlayerCreateInPlay(Card card)
+        {
+            UpdateStats(Core.Game.Player.Id);
+        }
 
         internal static void TurnStart(ActivePlayer player)
         {
             if (!InBgMode("Turn Start")) return;
 
             int turn = Core.Game.GetTurnNumber();
-
-            Overlay.UpdateTurn(turn);
 
             int level = Core.Game.PlayerEntity.GetTag(GameTag.PLAYER_TECH_LEVEL);
 
@@ -180,21 +183,11 @@ namespace BattlegroundsMatchData
             Log.Info("Current minions in play: " + Snapshot.Minions);
             _record.Snapshot = Snapshot;
 
-            float atk = Core.Game.Entities.Values
-                    .Where(x => x.IsMinion && x.IsInPlay && x.IsControlledBy(playerId))
-                    .Select(x => MinionToAtk(x))
-                    .ToArray().Average();
-
-            float health = Core.Game.Entities.Values
-                    .Where(x => x.IsMinion && x.IsInPlay && x.IsControlledBy(playerId))
-                    .Select(x => MinionToHealth(x))
-                    .ToArray().Average();
-
-            Overlay.UpdateStats(atk, health);
+            UpdateStats(playerId);
 
             bool isOpponentTurn = player == ActivePlayer.Opponent;
 
-            if (turn >= 7 && isOpponentTurn)
+            if (turn >= _config.TurnToStartTrackingAllBoards && isOpponentTurn)
             {
                 _record.Histories.Add(Snapshot);
 
@@ -206,6 +199,22 @@ namespace BattlegroundsMatchData
 
             }
 
+        }
+
+        private static void UpdateStats(int playerId)
+        {
+            float[] atk = Core.Game.Entities.Values
+                    .Where(x => x.IsMinion && x.IsInPlay && x.IsControlledBy(playerId))
+                    .Select(x => MinionToAtk(x))
+                    .ToArray();
+
+            float[] health = Core.Game.Entities.Values
+                    .Where(x => x.IsMinion && x.IsInPlay && x.IsControlledBy(playerId))
+                    .Select(x => MinionToHealth(x))
+                    .ToArray();
+
+            Overlay.UpdateTotalStats((int)atk.Sum(), (int)health.Sum());
+            Overlay.UpdateAvgStats(atk.Average(), health.Average());
         }
 
         private static BgMatchDataSnapshot CreatePlayerSnapshot(int playerId, int turn)
@@ -235,7 +244,8 @@ namespace BattlegroundsMatchData
             if (!InBgMode("Game Start")) return;
             Log.Info("Starting game");
             _record = new BgMatchDataRecord();
-            Overlay.UpdateTurn(1);
+            Overlay.UpdateTotalStats(0, 0);
+            Overlay.UpdateAvgStats(0, 0);
             Overlay.Show();
         }
 
@@ -299,10 +309,10 @@ namespace BattlegroundsMatchData
                     if (_config.UploadEnabled)
                     {
 
-                        String range = _config.SheetName + "!A1:K";
+                        String range = _config.SheetForMyEndingBoard + "!A1:K";
                         BgMatchSpreadsheetConnector.UpdateSingleRow(_record.ToList(), range);
 
-                        range = "Boards!A1:E";
+                        range = _config.SheetForAllBoards + "!A1:E";
                         BgMatchSpreadsheetConnector.UpdateData(_record.HistoryToList(), range);
                     }
                 }
