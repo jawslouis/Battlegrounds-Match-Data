@@ -4,6 +4,7 @@ using System.IO;
 
 using HearthDb.Enums;
 using Hearthstone_Deck_Tracker.Enums;
+using Hearthstone_Deck_Tracker.Hearthstone;
 using Hearthstone_Deck_Tracker.API;
 using Hearthstone_Deck_Tracker.Hearthstone.Entities;
 using Hearthstone_Deck_Tracker.Utility.Logging;
@@ -99,6 +100,7 @@ namespace BattlegroundsMatchData
     public class BgMatchData
     {
         private static bool _checkRating = false;
+        private static int _checkStats = 0;
         private static int _rating;
         private static BgMatchDataRecord _record;
         private static Config _config;
@@ -155,14 +157,17 @@ namespace BattlegroundsMatchData
             return entity.GetTag(GameTag.HEALTH);
         }
 
+        internal static void PlayerPlay(Card card)
+        {
+            UpdateStats();
+            _checkStats = 3; // check for 300ms after, since battlecries may have triggered
+        }
 
         internal static void TurnStart(ActivePlayer player)
         {
             if (!InBgMode("Turn Start")) return;
 
             int turn = Core.Game.GetTurnNumber();
-
-            Overlay.UpdateTurn(turn);
 
             int level = Core.Game.PlayerEntity.GetTag(GameTag.PLAYER_TECH_LEVEL);
 
@@ -180,21 +185,11 @@ namespace BattlegroundsMatchData
             Log.Info("Current minions in play: " + Snapshot.Minions);
             _record.Snapshot = Snapshot;
 
-            float atk = Core.Game.Entities.Values
-                    .Where(x => x.IsMinion && x.IsInPlay && x.IsControlledBy(playerId))
-                    .Select(x => MinionToAtk(x))
-                    .ToArray().Average();
-
-            float health = Core.Game.Entities.Values
-                    .Where(x => x.IsMinion && x.IsInPlay && x.IsControlledBy(playerId))
-                    .Select(x => MinionToHealth(x))
-                    .ToArray().Average();
-
-            Overlay.UpdateStats(atk, health);
+            UpdateStats();
 
             bool isOpponentTurn = player == ActivePlayer.Opponent;
 
-            if (turn >= 7 && isOpponentTurn)
+            if (turn >= _config.TurnToStartTrackingAllBoards && isOpponentTurn)
             {
                 _record.Histories.Add(Snapshot);
 
@@ -206,6 +201,24 @@ namespace BattlegroundsMatchData
 
             }
 
+        }
+
+        private static void UpdateStats()
+        {
+            int playerId = Core.Game.Player.Id;
+
+            float[] atk = Core.Game.Entities.Values
+                    .Where(x => x.IsMinion && x.IsInPlay && x.IsControlledBy(playerId))
+                    .Select(x => MinionToAtk(x))
+                    .ToArray();
+
+            float[] health = Core.Game.Entities.Values
+                    .Where(x => x.IsMinion && x.IsInPlay && x.IsControlledBy(playerId))
+                    .Select(x => MinionToHealth(x))
+                    .ToArray();
+
+            Overlay.UpdateTotalStats((int)atk.Sum(), (int)health.Sum());
+            Overlay.UpdateAvgStats(atk.Average(), health.Average());
         }
 
         private static BgMatchDataSnapshot CreatePlayerSnapshot(int playerId, int turn)
@@ -235,7 +248,8 @@ namespace BattlegroundsMatchData
             if (!InBgMode("Game Start")) return;
             Log.Info("Starting game");
             _record = new BgMatchDataRecord();
-            Overlay.UpdateTurn(1);
+            Overlay.UpdateTotalStats(0, 0);
+            Overlay.UpdateAvgStats(0, 0);
             Overlay.Show();
         }
 
@@ -270,42 +284,50 @@ namespace BattlegroundsMatchData
 
         internal static void Update()
         {
-            if (_checkRating)
+
+            if (_checkStats >0)
             {
+                _checkStats--;
+                UpdateStats();
+            }
+
+            // rating is only updated after we have passed the menu
+            if (_checkRating)
+            {                
                 int latestRating = Core.Game.BattlegroundsRatingInfo.Rating;
 
-                if (_rating != latestRating)
+                Log.Info($"Checking rating. Current time is: {DateTime.Now.ToString()}, {DateTime.Now.Millisecond.ToString()}ms ");
+
+                if (!InBgMode("Update")) return;
+
+                _rating = latestRating;
+                _checkRating = false;
+                _record.Rating = _rating;
+                Log.Info($"Rating Updated: {_rating}");
+
+                if (!File.Exists(_config.CsvLocation))
                 {
-                    if (!InBgMode("Update")) return;
-
-                    _rating = latestRating;
-                    _checkRating = false;
-                    _record.Rating = _rating;
-                    Log.Info($"Rating Updated: {_rating}");
-
-                    if (!File.Exists(_config.CsvLocation))
+                    using (StreamWriter sw = File.CreateText(_config.CsvLocation))
                     {
-                        using (StreamWriter sw = File.CreateText(_config.CsvLocation))
-                        {
-                            sw.WriteLine(_record.Headers());
-                        }
-                    }
-
-                    using (StreamWriter sw = File.AppendText(_config.CsvLocation))
-                    {
-                        sw.WriteLine(_record.ToString());
-                    }
-
-                    if (_config.UploadEnabled)
-                    {
-
-                        String range = _config.SheetName + "!A1:K";
-                        BgMatchSpreadsheetConnector.UpdateSingleRow(_record.ToList(), range);
-
-                        range = "Boards!A1:E";
-                        BgMatchSpreadsheetConnector.UpdateData(_record.HistoryToList(), range);
+                        sw.WriteLine(_record.Headers());
                     }
                 }
+
+                using (StreamWriter sw = File.AppendText(_config.CsvLocation))
+                {
+                    sw.WriteLine(_record.ToString());
+                }
+
+                if (_config.UploadEnabled)
+                {
+
+                    String range = _config.SheetForMyEndingBoard + "!A1:K";
+                    BgMatchSpreadsheetConnector.UpdateSingleRow(_record.ToList(), range);
+
+                    range = _config.SheetForAllBoards + "!A1:E";
+                    BgMatchSpreadsheetConnector.UpdateData(_record.HistoryToList(), range);
+                }
+
             }
         }
     }

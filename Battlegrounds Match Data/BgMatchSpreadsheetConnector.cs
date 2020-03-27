@@ -46,7 +46,7 @@ namespace BattlegroundsMatchData
 
             if (_config.TestUpload)
             {
-                String range = _config.SheetName + "!A1:K";
+                String range = _config.SheetForMyEndingBoard + "!A1:K";
                 UpdateSingleRow(new List<Object>() { "test" }, range);
             }
         }
@@ -72,8 +72,6 @@ namespace BattlegroundsMatchData
             {
                 Values = values
             };
-
-
 
             AppendRequest request = _sheetsService.Spreadsheets.Values.Append(body, _config.SpreadsheetId, range);
             request.ValueInputOption = AppendRequest.ValueInputOptionEnum.RAW;

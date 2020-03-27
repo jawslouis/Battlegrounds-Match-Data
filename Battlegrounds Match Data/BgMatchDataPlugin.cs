@@ -5,6 +5,8 @@ using Hearthstone_Deck_Tracker.Plugins;
 using Hearthstone_Deck_Tracker.API;
 using Microsoft.Win32;
 using Newtonsoft.Json;
+using System.Windows;
+using System.Windows.Media;
 
 namespace BattlegroundsMatchData
 {
@@ -14,7 +16,9 @@ namespace BattlegroundsMatchData
         public string CsvLocation = Hearthstone_Deck_Tracker.Config.AppDataPath + @"\BattlegroundsMatchData.csv";
         public bool UploadEnabled = true;
         public bool TestUpload = false;
-        public string SheetName = "Sheet1";
+        public string SheetForMyEndingBoard = "Sheet1";
+        public string SheetForAllBoards = "Boards";
+        public int TurnToStartTrackingAllBoards = 7;
         public string SpreadsheetId;
         public string CredentialLocation;
 
@@ -29,6 +33,7 @@ namespace BattlegroundsMatchData
     {
         private Config config;
         private BgMatchOverlay _overlay;
+        private double _overlayHeight;
 
         public void OnLoad()
         {
@@ -37,16 +42,20 @@ namespace BattlegroundsMatchData
             GameEvents.OnTurnStart.Add(BgMatchData.TurnStart);
             GameEvents.OnGameEnd.Add(BgMatchData.GameEnd);
             GameEvents.OnInMenu.Add(BgMatchData.InMenu);
+            GameEvents.OnPlayerPlay.Add(BgMatchData.PlayerPlay);
 
-            try {
+            try
+            {
                 // load config from file, if available
-                config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(Config._configLocation));                
-            } catch {
+                config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(Config._configLocation));
+            }
+            catch
+            {
                 // create config file
                 config = new Config();
                 config.save();
             }
-      
+
             BgMatchData.OnLoad(config);
 
             // connect to Google            
@@ -56,8 +65,12 @@ namespace BattlegroundsMatchData
             Core.OverlayCanvas.Children.Add(_overlay);
             _overlay.UpdatePosition();
             BgMatchData.Overlay = _overlay;
+
+            _overlayHeight = Core.OverlayWindow.Height;
+
+
         }
-    
+
         public void OnUnload()
         {
             // Triggered when the user unticks the plugin, however, HDT does not completely unload the plugin.
@@ -75,6 +88,11 @@ namespace BattlegroundsMatchData
         public void OnUpdate()
         {
             // called every ~100ms
+            if (_overlayHeight != Core.OverlayWindow.Height)
+            {
+                _overlayHeight = Core.OverlayWindow.Height;
+                _overlay.UpdatePosition();
+            }
             BgMatchData.Update();
         }
 
@@ -92,16 +110,17 @@ namespace BattlegroundsMatchData
 
         private MenuItem CreateMenu()
         {
-            MenuItem m = new MenuItem {Header = "Battlegrounds Match Data"};
+            MenuItem m = new MenuItem { Header = "Battlegrounds Match Data" };
 
-            MenuItem setDirectory = new MenuItem {Header = "Set CSV Location"};
+            MenuItem setDirectory = new MenuItem { Header = "Set CSV Location" };
             setDirectory.Click += (sender, args) =>
             {
                 ShowForm();
             };
             m.Items.Add(setDirectory);
 
-            MenuItem enableUpload = new MenuItem {
+            MenuItem enableUpload = new MenuItem
+            {
                 Header = "Enable Google Spreadsheet upload",
                 IsChecked = config.UploadEnabled
             };
@@ -109,7 +128,7 @@ namespace BattlegroundsMatchData
             {
                 config.UploadEnabled = !config.UploadEnabled;
                 enableUpload.IsChecked = config.UploadEnabled;
-                
+
                 if (config.UploadEnabled) BgMatchSpreadsheetConnector.ConnectToGoogle(config);
 
                 config.save();
