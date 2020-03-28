@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:BattlegroundsMatchData"
-             mc:Ignorable="d" Width="168" Height="54.667" Background="#FF343434" BorderThickness="2" BorderBrush="Black" >
+             mc:Ignorable="d" Width="185" Height="55" BorderBrush="#141617" BorderThickness="1" Background="#23272a">
     <StackPanel x:Name="panel" HorizontalAlignment="Left" Width="196" >
         <Label x:Name="AvgStatsLabel" Content="Avg Stats: 0.0 / 0.0" HorizontalAlignment="Left" Margin="0,0,0,-22" VerticalAlignment="Top" FontSize="18" FontFamily="Source Sans Pro" Foreground="White" />
         <Label x:Name="TotalStatsLabel" Content="Total Stats: 0 / 0" VerticalAlignment="Top" FontSize="18" FontFamily="Source Sans Pro" Foreground="White" HorizontalAlignment="Left" Margin="0,10,0,0" />

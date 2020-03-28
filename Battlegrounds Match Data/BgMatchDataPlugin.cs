@@ -33,7 +33,6 @@ namespace BattlegroundsMatchData
     {
         private Config config;
         private BgMatchOverlay _overlay;
-        private double _overlayHeight;
 
         public void OnLoad()
         {
@@ -62,12 +61,9 @@ namespace BattlegroundsMatchData
             if (config.UploadEnabled) BgMatchSpreadsheetConnector.ConnectToGoogle(config);
 
             _overlay = new BgMatchOverlay();
-            Core.OverlayCanvas.Children.Add(_overlay);
-            _overlay.UpdatePosition();
+            StackPanel BgsTopBar = (StackPanel) Core.OverlayWindow.FindName("BgsTopBar");
+            BgsTopBar.Children.Insert(1,_overlay);            
             BgMatchData.Overlay = _overlay;
-
-            _overlayHeight = Core.OverlayWindow.Height;
-
 
         }
 
@@ -86,13 +82,7 @@ namespace BattlegroundsMatchData
         }
 
         public void OnUpdate()
-        {
-            // called every ~100ms
-            if (_overlayHeight != Core.OverlayWindow.Height)
-            {
-                _overlayHeight = Core.OverlayWindow.Height;
-                _overlay.UpdatePosition();
-            }
+        {            
             BgMatchData.Update();
         }
 
@@ -104,7 +94,7 @@ namespace BattlegroundsMatchData
 
         public string Author => "JawsLouis";
 
-        public Version Version => new Version(0, 3, 0);
+        public Version Version => new Version(0, 3, 1);
 
         public MenuItem MenuItem => CreateMenu();
 

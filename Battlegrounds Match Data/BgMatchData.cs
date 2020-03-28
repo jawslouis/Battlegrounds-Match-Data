@@ -250,8 +250,7 @@ namespace BattlegroundsMatchData
             Log.Info("Starting game");
             _record = new BgMatchDataRecord();
             Overlay.UpdateTotalStats(0, 0);
-            Overlay.UpdateAvgStats(0, 0);
-            Overlay.Show();
+            Overlay.UpdateAvgStats(0, 0);            
         }
 
         internal static void OnLoad(Config config)
@@ -270,8 +269,7 @@ namespace BattlegroundsMatchData
                 .First();
             _record.Position = hero.GetTag(GameTag.PLAYER_LEADERBOARD_PLACE);
 
-            Log.Info($"Game ended - {_record.Snapshot.Hero} - Position: {_record.Position}");
-            Overlay.Hide();
+            Log.Info($"Game ended - {_record.Snapshot.Hero} - Position: {_record.Position}");            
         }
 
         internal static void InMenu()

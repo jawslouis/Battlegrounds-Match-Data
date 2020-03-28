@@ -25,15 +25,7 @@ namespace BattlegroundsMatchData
     {
         public BgMatchOverlay()
         {
-            InitializeComponent();
-            Hide();
-        }
-        public void UpdatePosition()
-        {
-            double scale = Math.Max(0.8, Math.Min(1.3, Core.OverlayWindow.Height / 1080));
-            Canvas.SetTop(this, 65 * scale);
-            Canvas.SetRight(this, 220 * scale);
-            RenderTransform = new ScaleTransform(scale, scale, Width, Height);
+            InitializeComponent();            
         }
 
         public void UpdateAvgStats(float atk, float health)
@@ -46,14 +38,5 @@ namespace BattlegroundsMatchData
             TotalStatsLabel.Content = $"Total Stats: {atk} / {health}";
         }
 
-        public void Hide()
-        {
-            this.Visibility = Visibility.Hidden;
-        }
-
-        public void Show()
-        {
-            this.Visibility = Visibility.Visible;
-        }
     }
 }
