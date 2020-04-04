@@ -7,6 +7,8 @@ using Microsoft.Win32;
 using Newtonsoft.Json;
 using System.Windows;
 using System.Windows.Media;
+using Hearthstone_Deck_Tracker.Utility.Logging;
+using MahApps.Metro.Controls;
 
 namespace BattlegroundsMatchData
 {
@@ -33,6 +35,8 @@ namespace BattlegroundsMatchData
     {
         private Config config;
         private BgMatchOverlay _overlay;
+        private Flyout _settingsFlyout;
+        private BgMatchDataSettingsControl _settingsControl;
 
         public void OnLoad()
         {
@@ -60,12 +64,34 @@ namespace BattlegroundsMatchData
             // connect to Google            
             if (config.UploadEnabled) BgMatchSpreadsheetConnector.ConnectToGoogle(config);
 
+            // create overlay and insert into HDT overlay
             _overlay = new BgMatchOverlay();
-            StackPanel BgsTopBar = (StackPanel) Core.OverlayWindow.FindName("BgsTopBar");
-            BgsTopBar.Children.Insert(1,_overlay);            
+            StackPanel BgsTopBar = (StackPanel)Core.OverlayWindow.FindName("BgsTopBar");
+            BgsTopBar.Children.Insert(1, _overlay);
             BgMatchData.Overlay = _overlay;
 
+            // create settings flyout
+            _settingsFlyout = new Flyout();
+            _settingsFlyout.Name = "BgSettingsFlyout";
+            _settingsFlyout.Position = Position.Left;
+            Panel.SetZIndex(_settingsFlyout, 100);
+            _settingsFlyout.Header = "Battlegrounds Match Data Settings";
+            _settingsControl = new BgMatchDataSettingsControl(config);
+            _settingsFlyout.Content = _settingsControl;
+            _settingsFlyout.ClosingFinished += (sender, args) =>
+            {
+                config.UploadEnabled = (bool)_settingsControl.UploadToggle.IsChecked;
+                config.CsvLocation = _settingsControl.CsvLocation.Text;
+                config.CredentialLocation = _settingsControl.CredentialLocation.Text;
+                config.SpreadsheetId = _settingsControl.SpreadsheetID.Text;
+                config.TurnToStartTrackingAllBoards = Int32.Parse(_settingsControl.TurnToTrack.Text);
+                config.save();
+            };
+            Core.MainWindow.Flyouts.Items.Add(_settingsFlyout);
+
+            //_settingsFlyout.IsOpen = true;
         }
+
 
         public void OnUnload()
         {
@@ -78,53 +104,35 @@ namespace BattlegroundsMatchData
         public void OnButtonPress()
         {
             // Triggered when the user clicks your button in the plugin list
-            ShowForm();
+            _settingsFlyout.IsOpen = true;
         }
 
         public void OnUpdate()
-        {            
+        {
             BgMatchData.Update();
         }
 
         public string Name => "Battlegrounds Match Data";
 
-        public string Description => "Save your match statistics in a local CSV file. Tracks the hero, ending position, ending minions, and the turns to reach tavern tiers for each match.";
+        public string Description => "Save your match statistics in a local CSV file or in a Google Sheet online. Tracks the hero, ending position, minions, and the turns to reach tavern tiers for each match.";
 
-        public string ButtonText => "Set CSV Location";
+        public string ButtonText => "Settings";
 
         public string Author => "JawsLouis";
 
-        public Version Version => new Version(0, 3, 1);
+        public Version Version => new Version(0, 3, 2);
 
         public MenuItem MenuItem => CreateMenu();
 
+
         private MenuItem CreateMenu()
         {
-            MenuItem m = new MenuItem { Header = "Battlegrounds Match Data" };
+            MenuItem m = new MenuItem { Header = "Battlegrounds Match Data Settings" };
 
-            MenuItem setDirectory = new MenuItem { Header = "Set CSV Location" };
-            setDirectory.Click += (sender, args) =>
+            m.Click += (sender, args) =>
             {
-                ShowForm();
+                _settingsFlyout.IsOpen = true;
             };
-            m.Items.Add(setDirectory);
-
-            MenuItem enableUpload = new MenuItem
-            {
-                Header = "Enable Google Spreadsheet upload",
-                IsChecked = config.UploadEnabled
-            };
-            enableUpload.Click += (sender, args) =>
-            {
-                config.UploadEnabled = !config.UploadEnabled;
-                enableUpload.IsChecked = config.UploadEnabled;
-
-                if (config.UploadEnabled) BgMatchSpreadsheetConnector.ConnectToGoogle(config);
-
-                config.save();
-            };
-
-            m.Items.Add(enableUpload);
 
             return m;
         }

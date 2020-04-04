@@ -1,0 +1,33 @@
+﻿<UserControl x:Class="BattlegroundsMatchData.BgMatchDataSettingsControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:BattlegroundsMatchData"                            
+             xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
+             mc:Ignorable="d" >
+
+    <StackPanel x:Name="panel" HorizontalAlignment="Left">
+        <DockPanel Margin="10,10,10,10">
+            <Label Content="CSV File Location" FontSize="16"></Label>
+            <TextBox Name="CsvLocation" Text="Label 1" FontSize="16"  VerticalAlignment="Center"  Width="500" TextWrapping="Wrap" HorizontalAlignment="Right"></TextBox>
+        </DockPanel>
+        <Separator></Separator>
+        <DockPanel Margin="10,10,10,0">
+            <Label Content="Enable Google spreadsheet upload" FontSize="16"/>
+            <controls:ToggleSwitch Name="UploadToggle" HorizontalAlignment="Right" OnLabel="" OffLabel="" />
+        </DockPanel>
+        <DockPanel Margin="10,10,10,0">
+            <Label Content="Credential Location" FontSize="16"></Label>
+            <TextBox Name="CredentialLocation" Text="Label 1" FontSize="16"  VerticalAlignment="Center"  Width="500" TextWrapping="Wrap" HorizontalAlignment="Right"></TextBox>
+        </DockPanel>
+        <DockPanel Margin="10,10,10,0">
+            <Label Content="Spreadsheet ID" FontSize="16"></Label>
+            <TextBox Name="SpreadsheetID" Text="Label 2" FontSize="16" VerticalAlignment="Center" Width="500"  HorizontalAlignment="Right"></TextBox>
+        </DockPanel>
+        <DockPanel Margin="10,10,10,0">
+            <Label Content="Turn # to start tracking boards" FontSize="16"></Label>
+            <TextBox Name="TurnToTrack" Text="Label 3" FontSize="16" VerticalAlignment="Center" Width="200"  HorizontalAlignment="Right"></TextBox>
+        </DockPanel>
+    </StackPanel>
+</UserControl>
