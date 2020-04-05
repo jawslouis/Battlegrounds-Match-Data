@@ -12,7 +12,7 @@ using static Google.Apis.Sheets.v4.SpreadsheetsResource.ValuesResource;
 
 namespace BattlegroundsMatchData
 {
-    public class BgMatchSpreadsheetConnector
+    public class SpreadsheetConnector
     {
         private static string[] _scopes = { SheetsService.Scope.Spreadsheets }; // Change this if you're accessing Drive or Docs
         private static string _applicationName = "Battlegrounds Match Data";

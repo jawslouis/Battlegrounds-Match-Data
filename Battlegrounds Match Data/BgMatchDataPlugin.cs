@@ -36,7 +36,7 @@ namespace BattlegroundsMatchData
         private Config config;
         private BgMatchOverlay _overlay;
         private Flyout _settingsFlyout;
-        private BgMatchDataSettingsControl _settingsControl;
+        private SettingsControl _settingsControl;
 
         public void OnLoad()
         {
@@ -62,7 +62,7 @@ namespace BattlegroundsMatchData
             BgMatchData.OnLoad(config);
 
             // connect to Google            
-            if (config.UploadEnabled) BgMatchSpreadsheetConnector.ConnectToGoogle(config);
+            if (config.UploadEnabled) SpreadsheetConnector.ConnectToGoogle(config);
 
             // create overlay and insert into HDT overlay
             _overlay = new BgMatchOverlay();
@@ -76,7 +76,7 @@ namespace BattlegroundsMatchData
             _settingsFlyout.Position = Position.Left;
             Panel.SetZIndex(_settingsFlyout, 100);
             _settingsFlyout.Header = "Battlegrounds Match Data Settings";
-            _settingsControl = new BgMatchDataSettingsControl(config);
+            _settingsControl = new SettingsControl(config);
             _settingsFlyout.Content = _settingsControl;
             _settingsFlyout.ClosingFinished += (sender, args) =>
             {

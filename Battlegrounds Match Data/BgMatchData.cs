@@ -14,7 +14,7 @@ using Hearthstone_Deck_Tracker.Utility;
 namespace BattlegroundsMatchData
 {
 
-    public class BgMatchDataSnapshot
+    public class TurnSnapshot
     {
         public string Minions;
         public string Hero;
@@ -25,12 +25,12 @@ namespace BattlegroundsMatchData
     }
 
 
-    public class BgMatchDataRecord
+    public class GameRecord
     {
         public List<int> TavernTierTimings = new List<int>();
         public int CurrentTavernTier = 1;
-        public BgMatchDataSnapshot Snapshot = new BgMatchDataSnapshot();
-        public List<BgMatchDataSnapshot> Histories = new List<BgMatchDataSnapshot>();
+        public TurnSnapshot Snapshot = new TurnSnapshot();
+        public List<TurnSnapshot> Histories = new List<TurnSnapshot>();
         public int Rating;
 
         public string DateTime { get => Snapshot.dateTime; set => Snapshot.dateTime = value; }
@@ -84,7 +84,7 @@ namespace BattlegroundsMatchData
         {
             IList<IList<Object>> values = new List<IList<Object>>();
 
-            foreach (BgMatchDataSnapshot s in Histories)
+            foreach (TurnSnapshot s in Histories)
             {
                 List<object> l = new List<object>
                 {
@@ -102,7 +102,7 @@ namespace BattlegroundsMatchData
         private static bool _checkRating = false;
         private static int _checkStats = 0;
         private static int _rating;
-        private static BgMatchDataRecord _record;
+        private static GameRecord _record;
         private static Config _config;
 
         public static BgMatchOverlay Overlay;
@@ -181,7 +181,7 @@ namespace BattlegroundsMatchData
             // take snapshot of current minions board state
             int playerId = Core.Game.Player.Id;
 
-            BgMatchDataSnapshot Snapshot = CreatePlayerSnapshot(playerId, turn);
+            TurnSnapshot Snapshot = CreatePlayerSnapshot(playerId, turn);
 
             Log.Info("Current minions in play: " + Snapshot.Minions);
             _record.Snapshot = Snapshot;
@@ -195,7 +195,7 @@ namespace BattlegroundsMatchData
                 _record.Histories.Add(Snapshot);
 
                 // record opponent's board too
-                BgMatchDataSnapshot OppSnapshot = CreatePlayerSnapshot(Core.Game.Opponent.Id, turn);
+                TurnSnapshot OppSnapshot = CreatePlayerSnapshot(Core.Game.Opponent.Id, turn);
                 OppSnapshot.isSelf = "";
                 Log.Info($"Opponent: ({OppSnapshot.Hero}) - Minions in play: {OppSnapshot.Minions}");
                 _record.Histories.Add(OppSnapshot);
@@ -222,9 +222,9 @@ namespace BattlegroundsMatchData
             Overlay.UpdateAvgStats(atk.Average(), health.Average());
         }
 
-        private static BgMatchDataSnapshot CreatePlayerSnapshot(int playerId, int turn)
+        private static TurnSnapshot CreatePlayerSnapshot(int playerId, int turn)
         {
-            BgMatchDataSnapshot Snapshot = new BgMatchDataSnapshot();
+            TurnSnapshot Snapshot = new TurnSnapshot();
             var entities = Core.Game.Entities.Values
                     .Where(x => x.IsMinion && x.IsInPlay && x.IsControlledBy(playerId))
                     .Select(x => MinionToString(x))
@@ -248,7 +248,7 @@ namespace BattlegroundsMatchData
         {
             if (!InBgMode("Game Start")) return;
             Log.Info("Starting game");
-            _record = new BgMatchDataRecord();
+            _record = new GameRecord();
             Overlay.UpdateTotalStats(0, 0);
             Overlay.UpdateAvgStats(0, 0);            
         }
@@ -321,10 +321,10 @@ namespace BattlegroundsMatchData
                 {
 
                     String range = _config.SheetForMyEndingBoard + "!A1:K";
-                    BgMatchSpreadsheetConnector.UpdateSingleRow(_record.ToList(), range);
+                    SpreadsheetConnector.UpdateSingleRow(_record.ToList(), range);
 
                     range = _config.SheetForAllBoards + "!A1:E";
-                    BgMatchSpreadsheetConnector.UpdateData(_record.HistoryToList(), range);
+                    SpreadsheetConnector.UpdateData(_record.HistoryToList(), range);
 
                 }
 

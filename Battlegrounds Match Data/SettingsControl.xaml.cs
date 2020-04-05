@@ -16,9 +16,9 @@ using System.Windows.Shapes;
 
 namespace BattlegroundsMatchData
 {
-    public partial class BgMatchDataSettingsControl : UserControl
+    public partial class SettingsControl : UserControl
     {
-        public BgMatchDataSettingsControl(Config c)
+        public SettingsControl(Config c)
         {
             InitializeComponent();
             UpdateConfig(c);
