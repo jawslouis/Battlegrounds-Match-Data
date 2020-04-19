@@ -1,4 +1,8 @@
-﻿using Hearthstone_Deck_Tracker.Utility.Logging;
+﻿using Hearthstone_Deck_Tracker;
+using Hearthstone_Deck_Tracker.FlyoutControls.Options.HSReplay;
+using Hearthstone_Deck_Tracker.HsReplay.Data;
+using Hearthstone_Deck_Tracker.Utility;
+using Hearthstone_Deck_Tracker.Utility.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,13 +30,22 @@ namespace BattlegroundsMatchData
 
         public void UpdateConfig(Config c)
         {
-            UploadToggle.IsChecked = c.UploadEnabled;
-            CsvLocation.Text = c.CsvLocation;
+            UploadToggle.IsChecked = c.SpreadsheetUploadEnabled;
+            CsvLocation.Text = c.CsvGameRecordLocation;
             CredentialLocation.Text = c.CredentialLocation;
             SpreadsheetID.Text = c.SpreadsheetId;
-            TurnToTrack.Text =  c.TurnToStartTrackingAllBoards.ToString();
+            TurnToTrack.Text = c.TurnToStartTrackingAllBoards.ToString();
+            BgStatsToggle.IsChecked = c.GraphqlUploadEnabled;
+            BgStatsLink.Command = OpenBgStatsCommand;
+            string user = Helper.OptionsMain.OptionsHSReplayAccount.Username;
+            BgStatsLinkText.Text = user;
         }
 
+        public ICommand OpenBgStatsCommand => new Command(() =>
+        {
+            string user = Helper.OptionsMain.OptionsHSReplayAccount.Username;
+            Helper.TryOpenUrl("http://bgstats.cintrest.com/" + user.Replace("#", "-"));
+        });
 
     }
 }

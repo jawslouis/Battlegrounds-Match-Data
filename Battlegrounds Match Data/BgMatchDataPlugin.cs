@@ -5,24 +5,32 @@ using Hearthstone_Deck_Tracker.Plugins;
 using Hearthstone_Deck_Tracker.API;
 using Microsoft.Win32;
 using Newtonsoft.Json;
-using System.Windows;
-using System.Windows.Media;
 using Hearthstone_Deck_Tracker.Utility.Logging;
 using MahApps.Metro.Controls;
+using System.Windows;
+using Hearthstone_Deck_Tracker.HsReplay;
 
 namespace BattlegroundsMatchData
 {
     public class Config
     {
         public static readonly string _configLocation = Hearthstone_Deck_Tracker.Config.AppDataPath + @"\Plugins\BattlegroundsMatchData\BattlegroundsMatchData.config";
-        public string CsvLocation = Hearthstone_Deck_Tracker.Config.AppDataPath + @"\BattlegroundsMatchData.csv";
-        public bool UploadEnabled = true;
-        public bool TestUpload = false;
+        public int TurnToStartTrackingAllBoards = 7;
+
+        // csv settings
+        public string CsvGameRecordLocation = Hearthstone_Deck_Tracker.Config.AppDataPath + @"\BGMatchDataGames.csv";
+        public string CsvBoardRecordLocation = Hearthstone_Deck_Tracker.Config.AppDataPath + @"\BGMatchDataBoards.csv";
+
+        // spreadsheet settings
+        public bool SpreadsheetUploadEnabled = true;
         public string SheetForMyEndingBoard = "Sheet1";
         public string SheetForAllBoards = "Boards";
-        public int TurnToStartTrackingAllBoards = 7;
         public string SpreadsheetId;
         public string CredentialLocation;
+
+        // graphql settings
+        public bool GraphqlUploadEnabled = true;
+        public bool GraphqlUploadLocal = false;
 
         public void save()
         {
@@ -46,6 +54,7 @@ namespace BattlegroundsMatchData
             GameEvents.OnGameEnd.Add(BgMatchData.GameEnd);
             GameEvents.OnInMenu.Add(BgMatchData.InMenu);
             GameEvents.OnPlayerPlay.Add(BgMatchData.PlayerPlay);
+            GameEvents.OnEntityWillTakeDamage.Add(BgMatchData.EntityDamage);
 
             try
             {
@@ -62,7 +71,14 @@ namespace BattlegroundsMatchData
             BgMatchData.OnLoad(config);
 
             // connect to Google            
-            if (config.UploadEnabled) SpreadsheetConnector.ConnectToGoogle(config);
+            if (config.SpreadsheetUploadEnabled) SpreadsheetConnector.Initialize(config);
+            CsvConnector.Initialize(config);
+            GraphqlConnector.Initialize(config);
+
+            // run tests if neccessary
+            //BgMatchTest.Test();
+
+
 
             // create overlay and insert into HDT overlay
             _overlay = new BgMatchOverlay();
@@ -80,16 +96,16 @@ namespace BattlegroundsMatchData
             _settingsFlyout.Content = _settingsControl;
             _settingsFlyout.ClosingFinished += (sender, args) =>
             {
-                config.UploadEnabled = (bool)_settingsControl.UploadToggle.IsChecked;
-                config.CsvLocation = _settingsControl.CsvLocation.Text;
+                config.SpreadsheetUploadEnabled = (bool)_settingsControl.UploadToggle.IsChecked;
+                config.CsvGameRecordLocation = _settingsControl.CsvLocation.Text;
                 config.CredentialLocation = _settingsControl.CredentialLocation.Text;
                 config.SpreadsheetId = _settingsControl.SpreadsheetID.Text;
                 config.TurnToStartTrackingAllBoards = Int32.Parse(_settingsControl.TurnToTrack.Text);
+                config.GraphqlUploadEnabled = (bool)_settingsControl.BgStatsToggle.IsChecked;
                 config.save();
             };
             Core.MainWindow.Flyouts.Items.Add(_settingsFlyout);
 
-            //_settingsFlyout.IsOpen = true;
         }
 
 
@@ -120,7 +136,7 @@ namespace BattlegroundsMatchData
 
         public string Author => "JawsLouis";
 
-        public Version Version => new Version(0, 3, 2);
+        public Version Version => new Version(0, 4, 0);
 
         public MenuItem MenuItem => CreateMenu();
 
@@ -141,11 +157,11 @@ namespace BattlegroundsMatchData
         {
             SaveFileDialog dialog = new SaveFileDialog
             {
-                InitialDirectory = Path.GetDirectoryName(config.CsvLocation),
-                FileName = Path.GetFileName(config.CsvLocation)
+                InitialDirectory = Path.GetDirectoryName(config.CsvGameRecordLocation),
+                FileName = Path.GetFileName(config.CsvGameRecordLocation)
             };
             dialog.ShowDialog();
-            config.CsvLocation = dialog.FileName;
+            config.CsvGameRecordLocation = dialog.FileName;
             config.save();
         }
 

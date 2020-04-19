@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
 using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
+using static Google.Apis.Sheets.v4.SpreadsheetsResource.ValuesResource;
+
 using Hearthstone_Deck_Tracker.Utility.Logging;
 using Newtonsoft.Json;
-using static Google.Apis.Sheets.v4.SpreadsheetsResource.ValuesResource;
+
 
 namespace BattlegroundsMatchData
 {
@@ -19,7 +22,7 @@ namespace BattlegroundsMatchData
         private static SheetsService _sheetsService;
         private static Config _config;
 
-        public static void ConnectToGoogle(Config config)
+        public static void Initialize(Config config)
         {
             _config = config;
 
@@ -41,26 +44,36 @@ namespace BattlegroundsMatchData
                 ApplicationName = _applicationName
             });
 
-            if (_config.TestUpload)
-            {
-                String range = _config.SheetForMyEndingBoard + "!A1:K";
-                UpdateSingleRow(new List<Object>() { "test" }, range);
-            }
         }
 
-
-        public static string UpdateSingleRow(List<Object> data, String range)
+        public static void WriteGameRecord(GameRecord record)
         {
-            IList<IList<Object>> values = new List<IList<Object>>
-            {
-                data
+            String range = _config.SheetForMyEndingBoard + "!A1:K";
+
+            IList<IList<Object>> values = new List<IList<Object>> {
+                record.ToList(true)
             };
 
-            return UpdateData(values, range);
+            UpdateData(values, range);
+        }
+
+        public static void WriteBoard(GameRecord record)
+        {
+            TurnSnapshot snap1 = record.Histories.Last();
+            TurnSnapshot snap2 = record.Histories[record.Histories.Count - 2];
+
+            IList<IList<Object>> values = new List<IList<Object>> {
+                snap1.ToList(true),
+                snap2.ToList(true)
+            };
+
+            string range = _config.SheetForAllBoards + "!A1:F";
+
+            UpdateData(values, range);
         }
 
         // Pass in your data as a list of a list (2-D lists are equivalent to the 2-D spreadsheet structure)
-        public static string UpdateData(IList<IList<Object>> values, String range)
+        private static string UpdateData(IList<IList<Object>> values, String range)
         {
             Log.Info("Updating spreadsheet data");
 

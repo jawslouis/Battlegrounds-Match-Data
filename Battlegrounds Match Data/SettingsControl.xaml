@@ -8,7 +8,7 @@
              mc:Ignorable="d" >
 
     <StackPanel x:Name="panel" HorizontalAlignment="Left">
-        <DockPanel Margin="10,10,10,10">
+        <DockPanel Margin="10">
             <Label Content="CSV File Location" FontSize="16"></Label>
             <TextBox Name="CsvLocation" Text="Label 1" FontSize="16"  VerticalAlignment="Center"  Width="500" TextWrapping="Wrap" HorizontalAlignment="Right"></TextBox>
         </DockPanel>
@@ -25,9 +25,22 @@
             <Label Content="Spreadsheet ID" FontSize="16"></Label>
             <TextBox Name="SpreadsheetID" Text="Label 2" FontSize="16" VerticalAlignment="Center" Width="500"  HorizontalAlignment="Right"></TextBox>
         </DockPanel>
-        <DockPanel Margin="10,10,10,0">
+        <DockPanel Margin="10">
             <Label Content="Turn # to start tracking boards" FontSize="16"></Label>
             <TextBox Name="TurnToTrack" Text="Label 3" FontSize="16" VerticalAlignment="Center" Width="200"  HorizontalAlignment="Right"></TextBox>
+        </DockPanel>
+        <Separator></Separator>
+        <DockPanel Margin="10,10,10,0">
+            <Label Content="Enable upload to BgStats" FontSize="16"/>
+            <controls:ToggleSwitch Name="BgStatsToggle" HorizontalAlignment="Right" OnLabel="" OffLabel="" />
+        </DockPanel>
+        <DockPanel Margin="10,10,10,0">
+            <Label Content="View data for" FontSize="16"></Label>
+            <Label FontSize="16">
+                <Hyperlink Name="BgStatsLink">
+                    <Run Name="BgStatsLinkText" Text="link" />
+                </Hyperlink>
+            </Label>
         </DockPanel>
     </StackPanel>
 </UserControl>
