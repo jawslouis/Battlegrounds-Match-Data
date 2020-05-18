@@ -32,6 +32,7 @@ namespace BattlegroundsMatchData
         {
             UploadToggle.IsChecked = c.SpreadsheetUploadEnabled;
             CsvLocation.Text = c.CsvGameRecordLocation;
+            BoardCsvLocation.Text = c.CsvBoardRecordLocation;
             CredentialLocation.Text = c.CredentialLocation;
             SpreadsheetID.Text = c.SpreadsheetId;
             TurnToTrack.Text = c.TurnToStartTrackingAllBoards.ToString();

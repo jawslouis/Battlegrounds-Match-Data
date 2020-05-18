@@ -22,7 +22,7 @@ namespace BattlegroundsMatchData
         public string CsvBoardRecordLocation = Hearthstone_Deck_Tracker.Config.AppDataPath + @"\BGMatchDataBoards.csv";
 
         // spreadsheet settings
-        public bool SpreadsheetUploadEnabled = true;
+        public bool SpreadsheetUploadEnabled = false;
         public string SheetForMyEndingBoard = "Sheet1";
         public string SheetForAllBoards = "Boards";
         public string SpreadsheetId;
@@ -98,6 +98,7 @@ namespace BattlegroundsMatchData
             {
                 config.SpreadsheetUploadEnabled = (bool)_settingsControl.UploadToggle.IsChecked;
                 config.CsvGameRecordLocation = _settingsControl.CsvLocation.Text;
+                config.CsvBoardRecordLocation = _settingsControl.BoardCsvLocation.Text;
                 config.CredentialLocation = _settingsControl.CredentialLocation.Text;
                 config.SpreadsheetId = _settingsControl.SpreadsheetID.Text;
                 config.TurnToStartTrackingAllBoards = Int32.Parse(_settingsControl.TurnToTrack.Text);

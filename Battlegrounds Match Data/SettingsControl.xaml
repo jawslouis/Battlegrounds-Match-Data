@@ -9,8 +9,12 @@
 
     <StackPanel x:Name="panel" HorizontalAlignment="Left">
         <DockPanel Margin="10">
-            <Label Content="CSV File Location" FontSize="16"></Label>
+            <Label Content="Game Data CSV Location" FontSize="16"></Label>
             <TextBox Name="CsvLocation" Text="Label 1" FontSize="16"  VerticalAlignment="Center"  Width="500" TextWrapping="Wrap" HorizontalAlignment="Right"></TextBox>
+        </DockPanel>
+        <DockPanel Margin="10">
+            <Label Content="Board Data CSV Location" FontSize="16"></Label>
+            <TextBox Name="BoardCsvLocation" Text="Label 1" FontSize="16"  VerticalAlignment="Center"  Width="500" TextWrapping="Wrap" HorizontalAlignment="Right"></TextBox>
         </DockPanel>
         <Separator></Separator>
         <DockPanel Margin="10,10,10,0">
@@ -31,7 +35,7 @@
         </DockPanel>
         <Separator></Separator>
         <DockPanel Margin="10,10,10,0">
-            <Label Content="Enable upload to BgStats" FontSize="16"/>
+            <Label Content="Enable upload to BgStats Dashboard" FontSize="16"/>
             <controls:ToggleSwitch Name="BgStatsToggle" HorizontalAlignment="Right" OnLabel="" OffLabel="" />
         </DockPanel>
         <DockPanel Margin="10,10,10,0">
