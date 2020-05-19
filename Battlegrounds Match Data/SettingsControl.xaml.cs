@@ -3,6 +3,7 @@ using Hearthstone_Deck_Tracker.FlyoutControls.Options.HSReplay;
 using Hearthstone_Deck_Tracker.HsReplay.Data;
 using Hearthstone_Deck_Tracker.Utility;
 using Hearthstone_Deck_Tracker.Utility.Logging;
+using MahApps.Metro.Controls;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,10 +23,18 @@ namespace BattlegroundsMatchData
 {
     public partial class SettingsControl : UserControl
     {
-        public SettingsControl(Config c)
+
+        private Action _mount;
+        private Action _unmount;
+        private Config _config;
+
+        public SettingsControl(Config c, Action mount, Action unmount)
         {
             InitializeComponent();
+            _config = c;
             UpdateConfig(c);
+            _mount = mount;
+            _unmount = unmount;
         }
 
         public void UpdateConfig(Config c)
@@ -40,6 +49,7 @@ namespace BattlegroundsMatchData
             BgStatsLink.Command = OpenBgStatsCommand;
             string user = Helper.OptionsMain.OptionsHSReplayAccount.Username;
             BgStatsLinkText.Text = user;
+            StatsOverlayToggle.IsChecked = c.showStatsOverlay;
         }
 
         public ICommand OpenBgStatsCommand => new Command(() =>
@@ -48,5 +58,17 @@ namespace BattlegroundsMatchData
             Helper.TryOpenUrl("http://bgstats.cintrest.com/" + user.Replace("#", "-"));
         });
 
+        private void Mount(object sender, RoutedEventArgs e)
+        {
+            _mount();
+            _config.showStatsOverlay = true;
+
+        }
+
+        private void Unmount(object sender, RoutedEventArgs e)
+        {
+            _unmount();
+            _config.showStatsOverlay = false;
+        }
     }
 }

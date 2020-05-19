@@ -282,6 +282,7 @@ namespace BattlegroundsMatchData
             if (!InBgMode("Game Start")) return;
             Log.Info("Starting game");
             _record = new GameRecord();
+
             Overlay.UpdateTotalStats(0, 0);
             Overlay.UpdateAvgStats(0, 0);
 

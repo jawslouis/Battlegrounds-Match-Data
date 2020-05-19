@@ -18,7 +18,7 @@
         </DockPanel>
         <Separator></Separator>
         <DockPanel Margin="10,10,10,0">
-            <Label Content="Enable Google spreadsheet upload" FontSize="16"/>
+            <Label Content="Enable Google Spreadsheet Upload" FontSize="16"/>
             <controls:ToggleSwitch Name="UploadToggle" HorizontalAlignment="Right" OnLabel="" OffLabel="" />
         </DockPanel>
         <DockPanel Margin="10,10,10,0">
@@ -38,13 +38,18 @@
             <Label Content="Enable upload to BgStats Dashboard" FontSize="16"/>
             <controls:ToggleSwitch Name="BgStatsToggle" HorizontalAlignment="Right" OnLabel="" OffLabel="" />
         </DockPanel>
-        <DockPanel Margin="10,10,10,0">
+        <DockPanel Margin="10">
             <Label Content="View data for" FontSize="16"></Label>
             <Label FontSize="16">
                 <Hyperlink Name="BgStatsLink">
                     <Run Name="BgStatsLinkText" Text="link" />
                 </Hyperlink>
             </Label>
+        </DockPanel>
+        <Separator></Separator>
+        <DockPanel Margin="10,10,10,0">
+            <Label Content="Enable minion statistics overlay" FontSize="16"/>
+            <controls:ToggleSwitch Name="StatsOverlayToggle" HorizontalAlignment="Right" OnLabel="" OffLabel="" Checked="Mount" Unchecked="Unmount" />
         </DockPanel>
     </StackPanel>
 </UserControl>

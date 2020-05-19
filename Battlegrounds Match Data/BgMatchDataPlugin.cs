@@ -16,6 +16,7 @@ namespace BattlegroundsMatchData
     {
         public static readonly string _configLocation = Hearthstone_Deck_Tracker.Config.AppDataPath + @"\Plugins\BattlegroundsMatchData\BattlegroundsMatchData.config";
         public int TurnToStartTrackingAllBoards = 7;
+        public bool showStatsOverlay = true;
 
         // csv settings
         public string CsvGameRecordLocation = Hearthstone_Deck_Tracker.Config.AppDataPath + @"\BGMatchDataGames.csv";
@@ -78,13 +79,15 @@ namespace BattlegroundsMatchData
             // run tests if neccessary
             //BgMatchTest.Test();
 
-
-
             // create overlay and insert into HDT overlay
             _overlay = new BgMatchOverlay();
-            StackPanel BgsTopBar = (StackPanel)Core.OverlayWindow.FindName("BgsTopBar");
-            BgsTopBar.Children.Insert(1, _overlay);
             BgMatchData.Overlay = _overlay;
+
+            if (config.showStatsOverlay)
+            {
+                MountOverlay();
+            }
+
 
             // create settings flyout
             _settingsFlyout = new Flyout();
@@ -92,7 +95,7 @@ namespace BattlegroundsMatchData
             _settingsFlyout.Position = Position.Left;
             Panel.SetZIndex(_settingsFlyout, 100);
             _settingsFlyout.Header = "Battlegrounds Match Data Settings";
-            _settingsControl = new SettingsControl(config);
+            _settingsControl = new SettingsControl(config, MountOverlay, UnmountOverlay);
             _settingsFlyout.Content = _settingsControl;
             _settingsFlyout.ClosingFinished += (sender, args) =>
             {
@@ -103,19 +106,32 @@ namespace BattlegroundsMatchData
                 config.SpreadsheetId = _settingsControl.SpreadsheetID.Text;
                 config.TurnToStartTrackingAllBoards = Int32.Parse(_settingsControl.TurnToTrack.Text);
                 config.GraphqlUploadEnabled = (bool)_settingsControl.BgStatsToggle.IsChecked;
+                config.showStatsOverlay = (bool)_settingsControl.StatsOverlayToggle.IsChecked;
                 config.save();
             };
             Core.MainWindow.Flyouts.Items.Add(_settingsFlyout);
 
         }
 
+        public void MountOverlay()
+        {
+            StackPanel BgsTopBar = (StackPanel)Core.OverlayWindow.FindName("BgsTopBar");
+            BgsTopBar.Children.Insert(1, _overlay);
+        }
+
+
+        public void UnmountOverlay()
+        {
+            StackPanel BgsTopBar = (StackPanel)Core.OverlayWindow.FindName("BgsTopBar");
+            BgsTopBar.Children.Remove(_overlay);
+        }
 
         public void OnUnload()
         {
             // Triggered when the user unticks the plugin, however, HDT does not completely unload the plugin.
             // see https://git.io/vxEcH
 
-            Core.OverlayCanvas.Children.Remove(_overlay);
+            if (config.showStatsOverlay) UnmountOverlay();
         }
 
         public void OnButtonPress()
@@ -137,7 +153,7 @@ namespace BattlegroundsMatchData
 
         public string Author => "JawsLouis";
 
-        public Version Version => new Version(0, 4, 0);
+        public Version Version => new Version(0, 4, 2);
 
         public MenuItem MenuItem => CreateMenu();
 
