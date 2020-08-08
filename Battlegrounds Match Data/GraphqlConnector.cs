@@ -49,6 +49,7 @@ namespace BattlegroundsMatchData
                 ("position", record.Position),
                 ("endTurn", record.Snapshot.Turn),
                 ("mmr", record.Rating),
+                ("mmrChange", record.MmrChange),
                 ("hero", record.Snapshot.Hero),
                 ("gameId", record.Snapshot.GameID),
                 ("dateTime", record.DateTime),
@@ -82,15 +83,11 @@ namespace BattlegroundsMatchData
             var content = new FormUrlEncodedContent(values);
 
             var response = await client.PostAsync("http://bgstats.cintrest.com/graphql", content);
+            //var response = await client.PostAsync("http://localhost:8000/bg_stats/graphql", content);
 
             var responseString = await response.Content.ReadAsStringAsync();
 
-            //if (_config.GraphqlUploadLocal)
-            //{
-            //    var response2 = await client.PostAsync("http://localhost:8000/bg_stats/graphql", content);
-            //    var responseString2 = await response.Content.ReadAsStringAsync();
-            //}
-
+            //MessageBox.Show(queryString);
             //MessageBox.Show(responseString);
         }
     }

@@ -75,6 +75,7 @@ namespace BattlegroundsMatchData
         public DateTimeOffset DateTime { get => Snapshot.dateTime; set => Snapshot.dateTime = value; }
         public string player { get => Snapshot.player; set => Snapshot.player = value; }
         public int Rating;
+        public int MmrChange;
 
         public List<string> Headers = new List<string> {
                 "Date & Time","Hero","Position","MMR","Ending Minions", "Turns taken to reach tavern tier 2","3","4","5","6", "Ending Turn", "Game ID", "Player"
@@ -191,10 +192,10 @@ namespace BattlegroundsMatchData
 
             int level = Core.Game.PlayerEntity.GetTag(GameTag.PLAYER_TECH_LEVEL);
 
-            if (_record.CurrentTavernTier != level)
+            while (_record.CurrentTavernTier != level)
             {
                 _record.TavernTierTimings.Add(turn);
-                _record.CurrentTavernTier = level;
+                _record.CurrentTavernTier++;
             }
 
             // take snapshot of current minions board state
@@ -367,7 +368,7 @@ namespace BattlegroundsMatchData
                 int latestRating = Core.Game.BattlegroundsRatingInfo.Rating;
 
                 Log.Info($"Checking rating. Current time is: {DateTime.Now}, {DateTime.Now.Millisecond}ms ");
-
+                _record.MmrChange = latestRating - _rating;
                 _rating = latestRating;
                 _checkRating = false;
                 _record.Rating = _rating;

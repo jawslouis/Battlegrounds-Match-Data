@@ -24,8 +24,8 @@ namespace BattlegroundsMatchData
 
         // spreadsheet settings
         public bool SpreadsheetUploadEnabled = false;
-        public string SheetForMyEndingBoard = "Sheet1";
-        public string SheetForAllBoards = "Boards";
+        public string SheetForMyEndingBoard = "MyResults";
+        public string SheetForAllBoards = "AllBoards";
         public string SpreadsheetId;
         public string CredentialLocation;
 
@@ -153,7 +153,7 @@ namespace BattlegroundsMatchData
 
         public string Author => "JawsLouis";
 
-        public Version Version => new Version(0, 4, 2);
+        public Version Version => new Version(0, 4, 3);
 
         public MenuItem MenuItem => CreateMenu();
 
