@@ -56,6 +56,7 @@ namespace BattlegroundsMatchData
             GameEvents.OnInMenu.Add(BgMatchData.InMenu);
             GameEvents.OnPlayerPlay.Add(BgMatchData.PlayerPlay);
             GameEvents.OnEntityWillTakeDamage.Add(BgMatchData.EntityDamage);
+            GameEvents.OnOpponentCreateInPlay.Add(BgMatchData.CheckOpponent);
 
             try
             {
@@ -153,7 +154,7 @@ namespace BattlegroundsMatchData
 
         public string Author => "JawsLouis";
 
-        public Version Version => new Version(0, 4, 3);
+        public Version Version => new Version(0, 4, 4);
 
         public MenuItem MenuItem => CreateMenu();
 

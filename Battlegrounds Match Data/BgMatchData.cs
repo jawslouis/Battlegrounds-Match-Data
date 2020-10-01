@@ -18,7 +18,7 @@ namespace BattlegroundsMatchData
 
     public class TurnSnapshot
     {
-        public string Minions;
+        public string Minions = "";
         public string Hero;
         public int Turn;
         public DateTimeOffset dateTime;
@@ -124,6 +124,7 @@ namespace BattlegroundsMatchData
         private static GameRecord _record;
         private static Config _config;
         private static bool isInBattle = false;
+        private static bool checkOppUpdate = false;
         private static int lastBattleTurn = 0;
         private static int lastRecordedTurn = 0;
 
@@ -188,6 +189,8 @@ namespace BattlegroundsMatchData
         {
             if (!InBgMode("Turn Start")) return;
 
+            checkOppUpdate = false;
+
             int turn = Core.Game.GetTurnNumber();
 
             int level = Core.Game.PlayerEntity.GetTag(GameTag.PLAYER_TECH_LEVEL);
@@ -220,6 +223,7 @@ namespace BattlegroundsMatchData
 
                     // record opponent's board too
                     TurnSnapshot OppSnapshot = CreatePlayerSnapshot(Core.Game.Opponent.Id, turn);
+                    checkOppUpdate = true;
                     OppSnapshot.isSelf = "";
                     Log.Info($"Opponent: ({OppSnapshot.Hero}) - Minions in play: {OppSnapshot.Minions}");
                     _record.Histories.Add(OppSnapshot);
@@ -269,13 +273,37 @@ namespace BattlegroundsMatchData
                 .FirstOrDefault();
 
             Snapshot.Hero = hero.LocalizedName;
-            Snapshot.Minions = entities.Aggregate((a, b) => a + ", " + b);
+            if (entities.Length > 0)
+            {
+                Snapshot.Minions = entities.Aggregate((a, b) => a + ", " + b);
+            }
             Snapshot.Turn = turn;
             Snapshot.dateTime = DateTimeOffset.Now;
             Snapshot.GameID = Core.Game.CurrentGameStats.GameId.ToString();
             Snapshot.player = Core.Game.Player.Name;
 
             return Snapshot;
+        }
+
+        // Sometimes, Bob's Tavern is wrongly recorded as the opponent hero. This happens when the opponent hasn't been updated before TurnStart is called.
+        // So we need to check if the opponent has changed since we last took the snapshot.
+        internal static void CheckOpponent(Card card)
+        {
+
+            if (!isInBattle || card == null || card.Type != "Hero") return;
+
+            Log.Info($"Opponent hero in play: {card.LocalizedName}");
+
+            if (!checkOppUpdate)
+            {
+                Log.Info($"No need to check if there is an updated opponent.");
+                return;
+            }
+
+            Log.Info($"Recording opponent hero to history: {card.LocalizedName}");
+            _record.Histories.Last().Hero = card.LocalizedName;
+
+            checkOppUpdate = false;
         }
 
         internal static void GameStart()
@@ -322,7 +350,7 @@ namespace BattlegroundsMatchData
         {
             if (!isInBattle || !info.Entity.IsHero) return;
 
-            Log.Info($"Predamage Info: {info.Entity.ToString()}");
+            if (_record.Histories.Count() == 0) return;
 
             TurnSnapshot oppSnapshot = _record.Histories.Last();
             TurnSnapshot mySnapshot = _record.Histories[_record.Histories.Count - 2];
@@ -339,6 +367,8 @@ namespace BattlegroundsMatchData
                 mySnapshot.result = "Win";
                 oppSnapshot.result = "Lose";
             }
+
+            checkOppUpdate = false;
 
         }
 
