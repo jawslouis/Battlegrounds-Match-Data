@@ -121,7 +121,7 @@ namespace BattlegroundsMatchData
         private static bool _checkRating = false;
         private static int _checkStats = 0;
         private static int _rating;
-        private static GameRecord _record;
+        private static GameRecord _record = new GameRecord(); // need to initialize here as well. GameStart isn't called if HDT is started midway through game
         private static Config _config;
         private static bool isInBattle = false;
         private static bool checkOppUpdate = false;
@@ -205,6 +205,7 @@ namespace BattlegroundsMatchData
             int playerId = Core.Game.Player.Id;
 
             TurnSnapshot Snapshot = CreatePlayerSnapshot(playerId, turn);
+
 
             Log.Info("Current minions in play: " + Snapshot.Minions);
             _record.Snapshot = Snapshot;
