@@ -25,7 +25,10 @@ Your minions' average & total stats (attack & health) will also be shown on an o
 
 ![Settings](Images/settings.PNG?raw=true)  
 
-Follow the setup instructions below for your preferred save method.
+Follow the setup instructions below for your preferred save method:
+- [Upload to BgStats Dashboard](#upload-to-bgstats-dashboard)
+- [Auto-upload to Google Spreadsheet](#auto-upload-to-google-spreadsheet)
+- [CSV](#csv)
 
 ## Upload to BgStats Dashboard
 
