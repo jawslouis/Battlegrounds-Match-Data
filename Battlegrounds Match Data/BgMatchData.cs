@@ -11,7 +11,9 @@ using Hearthstone_Deck_Tracker.API;
 using Hearthstone_Deck_Tracker.Hearthstone.Entities;
 using Hearthstone_Deck_Tracker.Utility;
 using Hearthstone_Deck_Tracker.Utility.Logging;
-using System.Windows;
+using Card = Hearthstone_Deck_Tracker.Hearthstone.Card;
+using Core = Hearthstone_Deck_Tracker.Core;
+using HearthDb;
 
 namespace BattlegroundsMatchData
 {
@@ -71,6 +73,7 @@ namespace BattlegroundsMatchData
         public TurnSnapshot Snapshot = new TurnSnapshot();
         public List<TurnSnapshot> Histories = new List<TurnSnapshot>();
         public int Position;
+        public string AvailableRaces = "";
 
         public DateTimeOffset DateTime { get => Snapshot.dateTime; set => Snapshot.dateTime = value; }
         public string player { get => Snapshot.player; set => Snapshot.player = value; }
@@ -78,7 +81,7 @@ namespace BattlegroundsMatchData
         public int MmrChange;
 
         public List<string> Headers = new List<string> {
-                "Date & Time","Hero","Position","MMR","Ending Minions", "Turns taken to reach tavern tier 2","3","4","5","6", "Ending Turn", "Game ID", "Player"
+                "Date & Time","Hero","Position","MMR","Ending Minions", "Minion Types", "Turns taken to reach tavern tier 2","3","4","5","6", "Ending Turn", "Game ID", "Player"
             };
 
         public List<string> PaddedTavernTimings()
@@ -99,7 +102,7 @@ namespace BattlegroundsMatchData
 
             List<object> l = new List<object>
             {
-                dt, Snapshot.Hero, Position, Rating, Snapshot.Minions
+                dt, Snapshot.Hero, Position, Rating, Snapshot.Minions, AvailableRaces
             };
 
             foreach (string turn in PaddedTavernTimings())
@@ -127,6 +130,7 @@ namespace BattlegroundsMatchData
         private static bool checkOppUpdate = false;
         private static int lastBattleTurn = 0;
         private static int lastRecordedTurn = 0;
+        private static bool recordedTypes = false;
 
         public static BgMatchOverlay Overlay;
 
@@ -209,6 +213,8 @@ namespace BattlegroundsMatchData
 
             Log.Info("Current minions in play: " + Snapshot.Minions);
             _record.Snapshot = Snapshot;
+
+            if (_record.AvailableRaces == "") _record.AvailableRaces = getMinionTypes();
 
             UpdateStats();
 
@@ -318,6 +324,7 @@ namespace BattlegroundsMatchData
 
             lastBattleTurn = 0;
             lastRecordedTurn = 0;
+
         }
 
         public static void OnLoad(Config config)
@@ -407,6 +414,39 @@ namespace BattlegroundsMatchData
 
                 Task.Run(WriteGameRecord); // write asynchronously
             }
+        }
+
+        internal static string setToString(IEnumerable<string> set)
+        {
+            return string.Join(", ", set);
+        }
+
+        internal static string getMinionTypes()
+        {
+            HashSet<Race> availableRaces = BattlegroundsUtils.GetAvailableRaces(Core.Game.CurrentGameStats?.GameId);
+            string races = setToString(availableRaces.Select(race => HearthDbConverter.RaceConverter(race)));
+
+            Func<HearthDb.Card, GameTag, int> getTag = (HearthDb.Card card, GameTag tag) =>
+            {
+                return card.Entity.GetTag(tag);
+            };
+
+
+            HashSet<Race> Races = new HashSet<Race>();
+
+            var baconCards = Cards.All.Values
+                .Where(x => getTag(x, GameTag.TECH_LEVEL) > 0 && getTag(x, GameTag.IS_BACON_POOL_MINION) > 0);
+
+
+            foreach (var race in baconCards.Select(x => x.Race))
+                Races.Add(race);
+
+            var unavailableRaces = setToString(Races.Where(x => !availableRaces.Contains(x) && x != Race.INVALID && x != Race.ALL).Select(x => HearthDbConverter.RaceConverter(x)));
+
+            string minionTypes = $"Available: {races}; Unavailable: {unavailableRaces}";
+            Log.Info($"Minion Types -- {minionTypes}");
+
+            return minionTypes;
         }
 
         internal static void WriteGameRecord()

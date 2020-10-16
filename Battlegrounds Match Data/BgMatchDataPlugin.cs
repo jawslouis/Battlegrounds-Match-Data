@@ -154,7 +154,7 @@ namespace BattlegroundsMatchData
 
         public string Author => "JawsLouis";
 
-        public Version Version => new Version(0, 4, 4);
+        public Version Version => new Version(0, 4, 5);
 
         public MenuItem MenuItem => CreateMenu();
 

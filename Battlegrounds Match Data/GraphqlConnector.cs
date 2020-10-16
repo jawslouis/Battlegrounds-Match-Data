@@ -54,6 +54,7 @@ namespace BattlegroundsMatchData
                 ("gameId", record.Snapshot.GameID),
                 ("dateTime", record.DateTime),
                 ("player", record.player),
+                ("minionTypes", record.AvailableRaces),
             };
             string recordString = ListToString(recordList);
 
@@ -85,8 +86,7 @@ namespace BattlegroundsMatchData
             var response = await client.PostAsync("http://bgstats.cintrest.com/graphql", content);
             //var response = await client.PostAsync("http://localhost:8000/bg_stats/graphql", content);
 
-            var responseString = await response.Content.ReadAsStringAsync();
-
+            //var responseString = await response.Content.ReadAsStringAsync();
             //MessageBox.Show(queryString);
             //MessageBox.Show(responseString);
         }
