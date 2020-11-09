@@ -148,13 +148,13 @@ namespace BattlegroundsMatchData
 
         public string Name => "Battlegrounds Match Data";
 
-        public string Description => "Save your match statistics in a local CSV file or in a Google Sheet online. Tracks the hero, ending position, minions, and the turns to reach tavern tiers for each match.";
+        public string Description => "Save your match statistics in an online dashboard, Google Sheet, or local CSV file. Track info such as the hero, ending position, and minions for yourself and your opponent.";
 
         public string ButtonText => "Settings";
 
         public string Author => "JawsLouis";
 
-        public Version Version => new Version(0, 4, 5);
+        public Version Version => new Version(0, 4, 6);
 
         public MenuItem MenuItem => CreateMenu();
 

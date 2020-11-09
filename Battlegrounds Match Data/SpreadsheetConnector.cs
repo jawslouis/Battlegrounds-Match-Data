@@ -51,7 +51,7 @@ namespace BattlegroundsMatchData
             String range = _config.SheetForMyEndingBoard + "!A1:K";
 
             IList<IList<Object>> values = new List<IList<Object>> {
-                record.ToList(true)
+                record.ToList()
             };
 
             UpdateData(values, range);

@@ -23,7 +23,11 @@ namespace BattlegroundsMatchData
         public string Minions = "";
         public string Hero;
         public int Turn;
-        public DateTimeOffset dateTime;
+        private DateTimeOffset dateTime;
+        public void SetDateTime(DateTimeOffset d)
+        {
+            dateTime = d;
+        }
         public string isSelf = "Yes";
         public string result = "Draw";
         public string GameID;
@@ -60,7 +64,7 @@ namespace BattlegroundsMatchData
 
         public string DateTimeToString()
         {
-            return dateTime.ToString("yyyy-MM-dd HHmm");
+            return dateTime.ToString("R");
         }
 
     }
@@ -75,7 +79,16 @@ namespace BattlegroundsMatchData
         public int Position;
         public string AvailableRaces = "";
 
-        public DateTimeOffset DateTime { get => Snapshot.dateTime; set => Snapshot.dateTime = value; }
+        public void SetDateTime(DateTimeOffset d)
+        {
+            Snapshot.SetDateTime(d);
+        }
+
+        public string getDateTime()
+        {
+            return Snapshot.DateTimeToString();
+        }
+
         public string player { get => Snapshot.player; set => Snapshot.player = value; }
         public int Rating;
         public int MmrChange;
@@ -94,11 +107,10 @@ namespace BattlegroundsMatchData
             return list;
         }
 
-        public List<object> ToList(bool useDateTimeString)
+        public List<object> ToList()
         {
 
-            object dt = DateTime;
-            if (useDateTimeString) dt = Snapshot.DateTimeToString();
+            String dt = Snapshot.DateTimeToString();
 
             List<object> l = new List<object>
             {
@@ -285,7 +297,7 @@ namespace BattlegroundsMatchData
                 Snapshot.Minions = entities.Aggregate((a, b) => a + ", " + b);
             }
             Snapshot.Turn = turn;
-            Snapshot.dateTime = DateTimeOffset.Now;
+            Snapshot.SetDateTime(DateTimeOffset.Now);
             Snapshot.GameID = Core.Game.CurrentGameStats.GameId.ToString();
             Snapshot.player = Core.Game.Player.Name;
 

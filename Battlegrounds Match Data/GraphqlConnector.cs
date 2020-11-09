@@ -52,7 +52,7 @@ namespace BattlegroundsMatchData
                 ("mmrChange", record.MmrChange),
                 ("hero", record.Snapshot.Hero),
                 ("gameId", record.Snapshot.GameID),
-                ("dateTime", record.DateTime),
+                ("dateTime", record.getDateTime()),
                 ("player", record.player),
                 ("minionTypes", record.AvailableRaces),
             };

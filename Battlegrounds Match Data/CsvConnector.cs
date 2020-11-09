@@ -28,7 +28,7 @@ namespace BattlegroundsMatchData
                 }
             }
 
-            string output = String.Join(",", record.ToList(true).Select(x => AddQuotes(x.ToString())));
+            string output = String.Join(",", record.ToList().Select(x => AddQuotes(x.ToString())));
 
             using (StreamWriter sw = File.AppendText(_config.CsvGameRecordLocation))
             {

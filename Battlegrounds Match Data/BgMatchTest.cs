@@ -25,7 +25,7 @@ namespace BattlegroundsMatchData
             snap.Hero = "Testing (Snap1)";
             snap.Turn = 15;
             snap.isSelf = "Yes";
-            snap.dateTime = DateTimeOffset.Now;
+            snap.SetDateTime(DateTimeOffset.Now);
             snap.GameID = "test123";
             snap.player = "Me";
 
@@ -33,7 +33,7 @@ namespace BattlegroundsMatchData
             snap2.Minions = "Cobalt Guardian (18/10 Divine Shield, Deathrattle), Cobalt Guardian (19/13 Divine Shield), Iron Sensei (6/2), Mecharoo (11/11 Taunt, Divine Shield, Deathrattle), Zapp Slywick (7/10 Windfury), Mechano-Egg (10/21 Taunt, Divine Shield, Deathrattle), Zapp Slywick (7/10 Windfury)";
             snap2.Hero = "Testing (Snap2)";
             snap2.Turn = 15;
-            snap2.dateTime = DateTimeOffset.Now;
+            snap2.SetDateTime(DateTimeOffset.Now);
             snap2.isSelf = "";
             snap2.result = "Lose";
             snap2.GameID = "test123";
