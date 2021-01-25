@@ -46,11 +46,16 @@ namespace BattlegroundsMatchData
                 }
             }
 
-            string output = String.Join(",", record.Snapshot.ToList(true).Select(x => AddQuotes(x.ToString())));
+            TurnSnapshot snap1 = record.Histories.Last();
+            TurnSnapshot snap2 = record.Histories[record.Histories.Count - 2];
+
+            string output1 = String.Join(",", snap1.ToList(true).Select(x => AddQuotes(x.ToString())));
+            string output2 = String.Join(",", snap2.ToList(true).Select(x => AddQuotes(x.ToString())));
 
             using (StreamWriter sw = File.AppendText(_config.CsvBoardRecordLocation))
             {
-                sw.WriteLine(output);
+                sw.WriteLine(output1);
+                sw.WriteLine(output2);
             }
         }
     }

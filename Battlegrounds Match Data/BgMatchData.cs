@@ -249,6 +249,7 @@ namespace BattlegroundsMatchData
                 }
                 else if (_record.Histories.Count() >= 2)
                 {
+                    CsvConnector.WriteBoard(_record);
                     if (_config.SpreadsheetUploadEnabled) SpreadsheetConnector.WriteBoard(_record);
                     if (_config.GraphqlUploadEnabled) GraphqlConnector.WriteBoard(_record);
 
@@ -359,6 +360,7 @@ namespace BattlegroundsMatchData
 
             if (lastBattleTurn != lastRecordedTurn && _record.Histories.Count >= 2)
             {
+                CsvConnector.WriteBoard(_record);
                 if (_config.SpreadsheetUploadEnabled) SpreadsheetConnector.WriteBoard(_record);
                 if (_config.GraphqlUploadEnabled) GraphqlConnector.WriteBoard(_record);
             }

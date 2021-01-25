@@ -14,8 +14,10 @@ namespace BattlegroundsMatchData
 
             GameRecord record = CreateTestRecord();
             //GraphqlConnector.WriteBoard(record);
-            GraphqlConnector.WriteGameRecord(record);
+            //GraphqlConnector.WriteGameRecord(record);
 
+            CsvConnector.WriteBoard(record);
+            CsvConnector.WriteGameRecord(record);
         }
 
         public static GameRecord CreateTestRecord()
