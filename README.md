@@ -1,4 +1,4 @@
-## Note: benluiwj has taken over the maintenance of this plugin. Use his fork at https://github.com/benluiwj/Battlegrounds-Match-Data
+## Note: benluiwj has taken over this plugin. Use his fork at https://github.com/benluiwj/Battlegrounds-Match-Data
 
 # Battlegrounds-Match-Data
 A plugin for [Hearthstone Deck Tracker](https://github.com/HearthSim/Hearthstone-Deck-Tracker) to save Battlegrounds match data to a CSV, Google Spreadsheet, or an [online dashboard](https://bgstats.cintrest.com).
